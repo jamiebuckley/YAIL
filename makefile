@@ -7,3 +7,5 @@ default : $(OBJS)
 %.o : %.c
 	gcc $(FLAGS) -c $<
 
+clean : 
+	rm $(OBJS)

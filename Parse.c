@@ -32,16 +32,14 @@ int main(int argc, char** argv)
 
 int statements()
 {
-	printf("Statements\n");
+	printf("<Statements>\n");
 	statement();
-	if(match(SEMI))
-		advance();
 
 	if (listnode->thisnode->type != EOI)
 	{
-		printf("More statements\n");
-		statements();
+		statement();
 	}
+	printf("</Statements\n");
 }
 
 int statement()
@@ -49,7 +47,6 @@ int statement()
 	tabindex++;
 	for(int i = 0; i < tabindex; i++) printf("\t");
 	printf("Statement\n");
-//	printf("Current is %d\n", listnode->thisnode->type);
 	if(match(WHI))
 	{
 		advance();
@@ -64,6 +61,9 @@ int statement()
 	{
 		basic_statement();
 	}
+
+	if(match(SEMI))
+		advance();
 	tabindex--;
 }
 
