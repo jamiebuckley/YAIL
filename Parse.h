@@ -19,12 +19,16 @@ int statements();
 int statement();
 int while_statement();
 int if_statement();
-int basic_statment();
+int basic_statement();
 int leftarg();
 int expression();
+int expressionalpha();
 int term();
+int termalpha();
 int factor();
-lexeme* lookahead();
+int lookahead();
+int match(int value);
 void advance();
+int legallookahead(int, ...);
 
 #endif

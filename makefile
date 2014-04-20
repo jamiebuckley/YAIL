@@ -1,7 +1,9 @@
 OBJS = list.o Lex.o Parse.o
+FLAGS = -std='c99'
 
 default : $(OBJS)
-	gcc $(OBJS) -o YAIL
+	gcc $(FLAGS) $(OBJS) -o YAIL
 
 %.o : %.c
-	gcc -c $<
+	gcc $(FLAGS) -c $<
+
