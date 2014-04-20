@@ -8,11 +8,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef LEXFILE
 #define DATA_TYPE lexeme
 #include "Lex.h"
+#define LEXFILE
+#endif
 
-#include "util/list.h"
-
+#include "list.h"
 
 #define EOI   0
 #define SEMI  1 
@@ -39,11 +41,14 @@
 char* data;
 char* current;
 
+
 dlinklist* list;
 
-int main(int argc, char** argv)
+
+/* Test main function*/ 
+int lexfile(char* filename)
 {
-    if(loadFile(argv[1]))
+    if(loadFile(filename))
     {
 	    printf("Error opening file\n");
 	    return -1;
