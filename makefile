@@ -1,4 +1,4 @@
-OBJS = list.o Lex.o Parse.o
+OBJS = List.o Lex.o Parse.o
 FLAGS = -std='c99'
 
 default : $(OBJS)

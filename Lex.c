@@ -15,7 +15,7 @@
 #define LEXFILE
 #endif
 
-#include "list.h"
+#include "List.h"
 
 char* data;
 char* current;
