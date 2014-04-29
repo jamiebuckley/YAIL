@@ -34,6 +34,7 @@ int main(int argc, char** argv)
 dlinklist* newlist()
 {
 	dlinklist* l = malloc(sizeof(dlinklist));
+	l->size=0;
 	l->start = NULL;
 	l->end = NULL;
 	return l;	
@@ -56,4 +57,38 @@ int append(dlinklist* list, DATA_TYPE* data)
 
 	list->end = node;
 	return 0;
+}
+
+int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before)
+{
+	if(list->size==0)
+	{
+		append(list, data);
+	}
+
+	node* current = list->start;
+	while(current != NULL)
+	{
+		if(current==thisNode)
+		{
+			node* newnode = malloc(sizeof(node));
+			newnode->thisnode = data;
+
+			if(before)
+			{
+				current->prev->next=newnode;
+				current->prev=newnode;
+			}
+			else
+			{
+				current->next->prev=newnode;
+				current->next=newnode;
+			}
+			return 0;
+		}
+		if(current==list->end)
+			return -1;
+
+		current=current->next;
+	}
 }

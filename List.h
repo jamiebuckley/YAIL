@@ -22,6 +22,7 @@ typedef struct node
 
 typedef struct dlinklist
 {
+	int size;
 	node* start;
 	node* end;
 } dlinklist;
@@ -29,5 +30,6 @@ typedef struct dlinklist
 dlinklist* newlist();
 
 int append(dlinklist* list, DATA_TYPE* data);
+int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before);
 
 #endif
