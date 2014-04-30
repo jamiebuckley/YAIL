@@ -2,46 +2,43 @@
 #include <stdlib.h>
 #include "Tree.h"
 
+/*
 int main(int argc, char** argv)
 {
 	TreeNode* tree = newNode();
-	tree->type=ROOT;
-	tree->value="ROOT";
+	tree->type="ROOT";
+	tree->value="Statement";
 
-	TreeNode* left = newNode();
-	left->type=OPERAND;
-	left->value="x";
+	TreeNode* firstChild = newNode();
+	firstChild->type="OPERAND";
+	firstChild->value="This";
 
-	TreeNode* right = newNode();
-	right->type=OPERAND;
-	right->value="10";
+	TreeNode* secondChild = newNode();
+	secondChild->type="OPERAND";
+	secondChild->value="Should";
 
-	add(tree, left, 0);
-	add(tree, right, 1);
+	TreeNode* thirdChild = newNode();
+	thirdChild->type="OPERAND";
+	thirdChild->value="Work";
 
-	print(tree);
+	tree->isLeaf=0;	
+	append(tree->children, firstChild);	
+	append(tree->children, secondChild);
+	append(tree->children, thirdChild);
+
+	printxml(tree);
+
 }
+*/
 
 TreeNode* newNode()
 {
 	TreeNode* node = malloc(sizeof(TreeNode));
 	node->isLeaf = 1;
-	node->type=-1;
+	node->type="NULL";
 	node->value="EMPTY";
-}
-
-int add(TreeNode* thisNode, TreeNode* newNode, int left)
-{
-	thisNode->isLeaf=0;
-
-	if(left == 0)
-	{
-		thisNode->left = newNode;
-	}
-	else
-	{
-		thisNode->right = newNode;
-	}
+	node->children=newlist();
+	return node;
 }
 
 int print(TreeNode* node)
@@ -56,10 +53,34 @@ int print(TreeNode* node)
 
 	printf("%s node, value: %s \n", nodeType, node->value);
 
-	if(!node->isLeaf)
+	if(node->isLeaf)
+		return 0;
+
+	struct node* current;
+    current	= node->children->start;
+
+	while(current!=NULL)
 	{
-		print(node->left);
-		print(node->right);
+		print(current->data);
+		current=current->next;
 	}
 }
 
+int printxml(TreeNode* node)
+{
+	if(node==NULL)
+		return-1;
+
+	printf("<%s value=%s>\n", node->type, node->value);
+	
+	struct node* current;
+	current = node->children->start;
+
+	while(current!=NULL)
+	{
+		printxml(current->data);
+		current=current->next;
+	}
+
+	printf("</%s>\n", node->type);
+}
