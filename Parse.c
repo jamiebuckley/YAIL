@@ -26,32 +26,22 @@ int main(int argc, char** argv)
 	lexfile(argv[1]);
 	listnode=list->start;
 	nextnode=listnode->next;
-	printf("Start node is %s\n", listnode->thisnode->value);
 	statements();
 }
 
 int statements()
 {
-	
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("<Statements>\n");
 	statement();
 
-	if (listnode->thisnode->type != EOI)
+	if (!match(EOI))
 	{
 		statement();
 	}
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Statements>\n");
 }
 
 int statement()
 {
 	tabindex++;
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Statement>\n");
 	if(match(WHI))
 	{
 		advance();
@@ -70,16 +60,10 @@ int statement()
 	if(match(SEMI))
 		advance();
 	tabindex--;
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Statement>\n");
 }
 
 int while_statement()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<While_Statement>\n");
 	if(match(LP))
 	{
 		advance();
@@ -97,10 +81,6 @@ int while_statement()
 		if (match(RCP))
 			advance();
 	}
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</While_Statement>\n");
 }
 
 int if_statement()
@@ -110,20 +90,12 @@ int if_statement()
 
 int basic_statement()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Basic statement>\n");
 	leftarg();
 	expression();
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Basic_Statement>\n");
 }
 
 int leftarg()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Leftarg>\n");
 	if(match(VAR))
 	{
 		advance();
@@ -132,28 +104,16 @@ int leftarg()
 			advance();
 		}
 	}
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Leftarg>\n");
 }
 
 int expression()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Expression>\n");
 	term();
 	expressionalpha();
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Expression>\n");
 }
 
 int expressionalpha()
 {	
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Expression Alpha>\n");
 	if(match(GT))
 	{
 		advance();
@@ -173,28 +133,16 @@ int expressionalpha()
 	term();
 	if(legallookahead(4, GT, LT, PLUS, MINUS))
 		expressionalpha();
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Expression_Alpha>\n");
 }
 
 int term()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");
-	printf("<Term>\n");
 	factor();
 	termalpha();
-
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Term>\n");
 }
 
 int termalpha()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("<Term alpha>\n");
 	if (match(TIMES))
 	{
 		advance();
@@ -207,15 +155,10 @@ int termalpha()
 
 	if(legallookahead(2, TIMES, DIV))
 		termalpha();
-
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Term_Alpha>\n");
 }
 
 int factor()
 {
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("<Factor>\n");
 	if(match(NUM))
 	{
 		advance();
@@ -224,9 +167,6 @@ int factor()
 	{
 		advance();
 	}
-	
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("</Factor>\n");
 }
 
 int legallookahead(int n, ...)
@@ -246,15 +186,15 @@ int legallookahead(int n, ...)
 
 int lookahead()
 {
-	return nextnode->thisnode->type;	
+	lexeme* lxm = (lexeme*)(nextnode->data);
+	return lxm->type;	
 }
 
 int match(int value)
 {
-	if(listnode->thisnode->type == value)
+	lexeme* lxm = (lexeme*)(listnode->data);
+	if(lxm->type == value)
 	{
-	//for(int i = 0; i < tabindex; i++) printf("\t");	
-		//printf("Matched %s\n", listnode->thisnode->value);
 		return 1;
 	}
 	return 0;
@@ -262,9 +202,6 @@ int match(int value)
 
 void advance()
 {	
-	for(int i = 0; i < tabindex; i++) printf("\t");	
-	printf("%s ", listnode->thisnode->value);
-//	printf("Advance\n");
 	listnode=nextnode;
 	nextnode=listnode->next;
 }
