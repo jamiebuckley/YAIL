@@ -34,17 +34,19 @@ int main(int argc, char** argv)
 dlinklist* newlist()
 {
 	dlinklist* l = malloc(sizeof(dlinklist));
-	l->size=0;
+	l->size = 0;
 	l->start = NULL;
 	l->end = NULL;
 	return l;	
 }
 
-int append(dlinklist* list, DATA_TYPE* data)
+int append(dlinklist* list, void* data)
 {
 	node* node = malloc(sizeof(node));
-	node->thisnode = data;	
-
+	node->data = data;	
+	
+	list->size++;
+	
 	if(list->start == NULL)	
 	{
 		list->start = node;
@@ -56,14 +58,16 @@ int append(dlinklist* list, DATA_TYPE* data)
 	node->prev = list->end;
 
 	list->end = node;
+
 	return 0;
 }
 
-int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before)
+int insert(dlinklist* list, node* thisNode, void* data, int before)
 {
 	if(list->size==0)
 	{
 		append(list, data);
+		return 0;
 	}
 
 	node* current = list->start;
@@ -72,7 +76,7 @@ int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before)
 		if(current==thisNode)
 		{
 			node* newnode = malloc(sizeof(node));
-			newnode->thisnode = data;
+			newnode->data = data;
 
 			if(before)
 			{
@@ -84,6 +88,7 @@ int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before)
 				current->next->prev=newnode;
 				current->next=newnode;
 			}
+			list->size++;
 			return 0;
 		}
 		if(current==list->end)
@@ -91,4 +96,18 @@ int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before)
 
 		current=current->next;
 	}
+}
+
+int foreach(dlinklist* list, nodeOp callback)
+{
+	if(!list->size)
+		return -1;
+
+	node* current = list->start;	
+	while(current!=NULL)
+	{
+		callback(current->data);
+		current=current->next;
+	}
+	return 0;
 }

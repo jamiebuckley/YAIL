@@ -8,28 +8,27 @@
 #ifndef LISTFILE
 #define LISTFILE
 
-#ifndef DATA_TYPE
-#define DATA_TYPE int
-#endif
-
-
 typedef struct node
 {
+    void* data;
 	struct node* prev;
 	struct node* next;
-	DATA_TYPE* thisnode;
 } node;
 
 typedef struct dlinklist
 {
 	int size;
+	size_t elementSize;
 	node* start;
 	node* end;
 } dlinklist;
 
+typedef int(*nodeOp)(void*);
+
 dlinklist* newlist();
 
-int append(dlinklist* list, DATA_TYPE* data);
-int insert(dlinklist* list, node* thisNode, DATA_TYPE* data, int before);
+int append(dlinklist* list, void* data);
+int insert(dlinklist* list, node* thisNode, void* data, int before);
+int foreach(dlinklist* list, nodeOp callback);
 
 #endif
