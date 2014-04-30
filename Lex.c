@@ -9,12 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifndef LEXFILE
-#define DATA_TYPE lexeme
 #include "Lex.h"
-#define LEXFILE
-#endif
-
 #include "List.h"
 
 char* data;
@@ -23,8 +18,21 @@ char* current;
 
 dlinklist* list;
 
+int printStuff(void* data)
+{
+	lexeme* c = (lexeme*)data;
+	printf("%s\n", c->value);
+}
 
-/* Test main function*/ 
+
+/*
+ *
+ * Test main function 
+int main(int argc, char** argv)
+{
+	lexfile("test.yail");
+}*/
+
 int lexfile(char* filename)
 {
     if(loadFile(filename))
@@ -35,7 +43,6 @@ int lexfile(char* filename)
 
 	list = newlist();
 
-    int num=0;
 	int res = 0;
     do
     {
@@ -43,14 +50,8 @@ int lexfile(char* filename)
     }
     while(!res);
 
-	node* current = list->start;
+	foreach(list, printStuff);
 
-	while(current != NULL)
-	{
-		printf("%d: %s = %d\n", num, current->thisnode->value, current->thisnode->type);
-		current = current->next;
-		num++;
-	}
 }
 
 /* Load <filename> into the data buffer */
