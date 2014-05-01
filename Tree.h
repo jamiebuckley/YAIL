@@ -1,7 +1,6 @@
 #ifndef TREE_HEADER
 #define TREE_HEADER
 
-#define DATA_TYPE struct TreeNode
 #include "List.h"
 
 #define OPERATOR 0
@@ -19,6 +18,6 @@ typedef struct TreeNode
 
 TreeNode* newNode();
 int print(TreeNode*);
-int printxml(TreeNode*);
+int printxml(int, TreeNode*);
 
 #endif

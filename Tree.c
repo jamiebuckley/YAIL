@@ -24,9 +24,9 @@ int main(int argc, char** argv)
 	tree->isLeaf=0;	
 	append(tree->children, firstChild);	
 	append(tree->children, secondChild);
-	append(tree->children, thirdChild);
+	prepend(tree->children, thirdChild);
 
-	printxml(tree);
+	printxml(0, tree);
 
 }
 */
@@ -34,9 +34,9 @@ int main(int argc, char** argv)
 TreeNode* newNode()
 {
 	TreeNode* node = malloc(sizeof(TreeNode));
-	node->isLeaf = 1;
+	node->isLeaf = 0;
 	node->type="NULL";
-	node->value="EMPTY";
+	node->value=NULL;
 	node->children=newlist();
 	return node;
 }
@@ -66,21 +66,34 @@ int print(TreeNode* node)
 	}
 }
 
-int printxml(TreeNode* node)
+int printxml(int tabnum, TreeNode* node)
 {
 	if(node==NULL)
+	{
+		printf("Error: Cannot print null node\n");
 		return-1;
+	}
 
-	printf("<%s value=%s>\n", node->type, node->value);
-	
+	char* singleTag = (node->children->size == 0)? " /" : "";
+
+	for(int i = 0; i < tabnum; i++) printf("  ");
+
+	if(node->value==NULL)
+		printf("<%s%s>\n", node->type, singleTag);
+	else
+		printf("<%s value=%s%s>\n", node->type, node->value, singleTag);
+
+	if(node->children->size==0)return 0;
+
 	struct node* current;
 	current = node->children->start;
 
 	while(current!=NULL)
 	{
-		printxml(current->data);
+		printxml(tabnum+1, current->data);
 		current=current->next;
 	}
 
+	for(int i = 0; i < tabnum; i++) printf("  ");
 	printf("</%s>\n", node->type);
 }
