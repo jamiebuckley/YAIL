@@ -26,22 +26,29 @@ int main(int argc, char** argv)
 	lexfile(argv[1]);
 	listnode=list->start;
 	nextnode=listnode->next;
-	statements();
+	TreeNode* statementsNode=statements();
+	printxml(0, statementsNode);
 }
 
-int statements()
+TreeNode* statements()
 {
-	statement();
+	TreeNode* statementsNode = newNode();
+	statementsNode->type="Statements";
 
-	if (!match(EOI))
+	append(statementsNode->children, statement());
+
+	while (!match(EOI))
 	{
-		statement();
+		append(statementsNode->children, statement());
 	}
+	return statementsNode;
 }
 
-int statement()
+TreeNode* statement()
 {
-	tabindex++;
+	TreeNode* statementNode = newNode();
+	statementNode->type="Statement";
+
 	if(match(WHI))
 	{
 		advance();
@@ -54,16 +61,18 @@ int statement()
 	}
 	else
 	{
-		basic_statement();
+		append(statementNode->children,	basic_statement());
 	}
 
 	if(match(SEMI))
 		advance();
-	tabindex--;
+
+	return statementNode;
 }
 
-int while_statement()
+TreeNode* while_statement()
 {
+	return NULL;
 	if(match(LP))
 	{
 		advance();
@@ -83,90 +92,142 @@ int while_statement()
 	}
 }
 
-int if_statement()
+TreeNode* if_statement()
 {
-
+	return NULL;
 }
 
-int basic_statement()
+TreeNode* basic_statement()
 {
-	leftarg();
-	expression();
+	TreeNode* leftArg =	leftarg();
+	append(leftArg->children, expression());
+	return leftArg;
 }
 
-int leftarg()
+TreeNode* leftarg()
 {
+
+	TreeNode* leftArg=newNode();
+	leftArg->type="Assign";	
 	if(match(VAR))
 	{
+		leftArg->value=getLex();
 		advance();
 		if(match(EQ))
 		{
 			advance();
 		}
 	}
+	return leftArg;
 }
 
-int expression()
+TreeNode* expression()
 {
-	term();
-	expressionalpha();
+	TreeNode* termNode = term();
+	TreeNode* expAl = expressionalpha();
+	if(expAl != NULL)
+	{
+		prepend(expAl->children, termNode);
+		return expAl;
+	}
+	else
+	{
+		return termNode;	
+	}
 }
 
-int expressionalpha()
+TreeNode* expressionalpha()
 {	
+	TreeNode* expAl=newNode();
+	expAl->type="Expression";
 	if(match(GT))
 	{
+		expAl->value=getLex();
 		advance();
 	}
 	else if(match(LT))
 	{
+		expAl->value=getLex();
 		advance();
 	}
 	else if (match(PLUS))
 	{
+		expAl->value=getLex();
 		advance();
 	}
 	else if (match(MINUS))
 	{
+		expAl->value=getLex();
 		advance();
 	}
-	term();
+	else
+	{
+		free(expAl);
+		return NULL;
+	}
+	append(expAl->children, term());
 	if(legallookahead(4, GT, LT, PLUS, MINUS))
-		expressionalpha();
+		append(expAl->children, expressionalpha());
+
+	return expAl;
 }
 
-int term()
+TreeNode* term()
 {
-	factor();
-	termalpha();
+	TreeNode* fac = factor();
+	TreeNode* term = termalpha();
+	prepend(term->children, fac);
+	return term;
 }
 
-int termalpha()
+TreeNode* termalpha()
 {
+	TreeNode* termAl = newNode();
+	termAl->type="Term";
 	if (match(TIMES))
 	{
+		termAl->value=getLex();
 		advance();
 	}	
 	else if (match(DIV))
 	{
+		termAl->value=getLex();
 		advance();
 	}
-	factor();
+	TreeNode* factorNode = factor();
+	if(factorNode!=NULL)
+	{
+		append(termAl->children, factorNode);
+	}
 
 	if(legallookahead(2, TIMES, DIV))
-		termalpha();
+		append(termAl->children, termalpha());
+
+	return termAl;
 }
 
-int factor()
+TreeNode* factor()
 {
+	TreeNode* factorNode = newNode();
+	factorNode->type="Factor";
+	factorNode->isLeaf=1;
 	if(match(NUM))
 	{
+		factorNode->type = "Number";
+		factorNode->value = getLex(); 
 		advance();
 	}
 	else if (match(VAR))
 	{
+		factorNode->type = "Variable";
+		factorNode->value = getLex();
 		advance();
 	}
+	else
+	{
+		return NULL;
+	}
+	return factorNode;
 }
 
 int legallookahead(int n, ...)
@@ -198,6 +259,12 @@ int match(int value)
 		return 1;
 	}
 	return 0;
+}
+
+char* getLex()
+{
+	lexeme* lxm = (lexeme*)(listnode->data);
+	return lxm->value;
 }
 
 void advance()

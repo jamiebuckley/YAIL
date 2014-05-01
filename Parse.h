@@ -9,26 +9,25 @@
 
 #include "Lex.h"
 
-#define DATA_TYPE lexeme
-
 #include "List.h"
+#include "Tree.h"
 
 
-
-int statements();
-int statement();
-int while_statement();
-int if_statement();
-int basic_statement();
-int leftarg();
-int expression();
-int expressionalpha();
-int term();
-int termalpha();
-int factor();
+TreeNode* statements();
+TreeNode* statement();
+TreeNode* while_statement();
+TreeNode* if_statement();
+TreeNode* basic_statement();
+TreeNode* leftarg();
+TreeNode* expression();
+TreeNode* expressionalpha();
+TreeNode* term();
+TreeNode* termalpha();
+TreeNode* factor();
 int lookahead();
 int match(int value);
 void advance();
 int legallookahead(int, ...);
+char* getLex();
 
 #endif
