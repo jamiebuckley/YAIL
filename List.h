@@ -28,6 +28,7 @@ typedef int(*nodeOp)(void*);
 dlinklist* newlist();
 
 int append(dlinklist* list, void* data);
+int prepend(dlinklist* list, void* data);
 int insert(dlinklist* list, node* thisNode, void* data, int before);
 int foreach(dlinklist* list, nodeOp callback);
 

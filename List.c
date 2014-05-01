@@ -62,6 +62,24 @@ int append(dlinklist* list, void* data)
 	return 0;
 }
 
+int prepend(dlinklist* list, void* data)
+{
+	node* node = malloc(sizeof(node));
+	node->data = data;
+	list->size++;
+
+	if (list->start == NULL)
+	{
+		list->start = node;
+		list->end = node;
+		return 0;
+	}
+
+	list->start->prev = node;
+	node->next = list->start;
+	list->start = node;
+}
+
 int insert(dlinklist* list, node* thisNode, void* data, int before)
 {
 	if(list->size==0)
