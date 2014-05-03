@@ -42,42 +42,42 @@ dlinklist* newlist()
 
 int append(dlinklist* list, void* data)
 {
-	node* node = malloc(sizeof(node));
-	node->data = data;	
+	node* addnode = malloc(sizeof(node));
+	addnode->data = data;	
 	
 	list->size++;
 	
 	if(list->start == NULL)	
 	{
-		list->start = node;
-		list->end = node;
+		list->start = addnode;
+		list->end = addnode;
 		return 0;
 	}
 
-	list->end->next = node;
-	node->prev = list->end;
+	list->end->next = addnode;
+	addnode->prev = list->end;
 
-	list->end = node;
+	list->end = addnode;
 
 	return 0;
 }
 
 int prepend(dlinklist* list, void* data)
 {
-	node* node = malloc(sizeof(node));
-	node->data = data;
+	node* addnode = malloc(sizeof(node));
+	addnode->data = data;
 	list->size++;
 
 	if (list->start == NULL)
 	{
-		list->start = node;
-		list->end = node;
+		list->start = addnode;
+		list->end = addnode;
 		return 0;
 	}
 
-	list->start->prev = node;
-	node->next = list->start;
-	list->start = node;
+	list->start->prev = addnode;
+	addnode->next = list->start;
+	list->start = addnode;
 }
 
 int insert(dlinklist* list, node* thisNode, void* data, int before)

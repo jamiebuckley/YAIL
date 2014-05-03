@@ -33,31 +33,31 @@ int main(int argc, char** argv)
 
 TreeNode* newNode()
 {
-	TreeNode* node = malloc(sizeof(TreeNode));
-	node->isLeaf = 0;
-	node->type="NULL";
-	node->value=NULL;
-	node->children=newlist();
-	return node;
+	TreeNode* tnode = malloc(sizeof(TreeNode));
+	tnode->isLeaf = 0;
+	tnode->type="NULL";
+	tnode->value=NULL;
+	tnode->children=newlist();
+	return tnode;
 }
 
-int print(TreeNode* node)
+int print(TreeNode* tnode)
 {
-	if(node==NULL)
+	if(tnode==NULL)
 	{
 		printf("Error: Cannot print null node\n");
 		return -1;
 	}	
 
-	char* nodeType = (node->type==OPERATOR)? "Operator" : "Operand";
+	char* nodeType = (tnode->type==OPERATOR)? "Operator" : "Operand";
 
-	printf("%s node, value: %s \n", nodeType, node->value);
+	printf("%s node, value: %s \n", nodeType, tnode->value);
 
-	if(node->isLeaf)
+	if(tnode->isLeaf)
 		return 0;
 
 	struct node* current;
-    current	= node->children->start;
+    current	= tnode->children->start;
 
 	while(current!=NULL)
 	{
@@ -66,27 +66,27 @@ int print(TreeNode* node)
 	}
 }
 
-int printxml(int tabnum, TreeNode* node)
+int printxml(int tabnum, TreeNode* tnode)
 {
-	if(node==NULL)
+	if(tnode==NULL)
 	{
 		printf("Error: Cannot print null node\n");
 		return-1;
 	}
 
-	char* singleTag = (node->children->size == 0)? " /" : "";
+	char* singleTag = (tnode->children->size == 0)? " /" : "";
 
 	for(int i = 0; i < tabnum; i++) printf("  ");
 
-	if(node->value==NULL)
-		printf("<%s%s>\n", node->type, singleTag);
+	if(tnode->value==NULL)
+		printf("<%s%s>\n", tnode->type, singleTag);
 	else
-		printf("<%s value=%s%s>\n", node->type, node->value, singleTag);
+		printf("<%s value=%s%s>\n", tnode->type, tnode->value, singleTag);
 
-	if(node->children->size==0)return 0;
+	if(tnode->children->size==0)return 0;
 
 	struct node* current;
-	current = node->children->start;
+	current = tnode->children->start;
 
 	while(current!=NULL)
 	{
@@ -95,5 +95,5 @@ int printxml(int tabnum, TreeNode* node)
 	}
 
 	for(int i = 0; i < tabnum; i++) printf("  ");
-	printf("</%s>\n", node->type);
+	printf("</%s>\n", tnode->type);
 }
