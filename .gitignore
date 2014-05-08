@@ -1,4 +1,6 @@
+.yail
 *~
 *.swp
 *.swo
 *.o
+bin/
