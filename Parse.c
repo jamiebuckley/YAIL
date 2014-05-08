@@ -20,213 +20,280 @@ extern dlinklist* list;
 
 int tabindex = 0;
 
+
+void printXML(BinaryTreeNode* thisNode, int index)
+{
+	if(!thisNode)
+	{
+		printf("NULL\n");
+		return;
+	//	exitWithError("Cannot print null node", -1);
+	}
+	if(!thisNode->data)
+	{
+		printf("NULL\n");
+		return;
+	//	exitWithError("Node has no data", -2);
+	}
+	ASTNode* thisData = (ASTNode*)thisNode->data;	
+	
+	for(int i = 0; i < index; i++) printf("\t");
+
+	if(!thisNode->isLeaf)
+	{
+		printf("<%s>\n", thisData->textType);
+		printXML(thisNode->left, index+1);
+		printXML(thisNode->right, index+1);
+	}
+	else
+	{
+		printf("<%s value=%s />\n", thisData->textType, thisData->value);
+		return;
+	}
+	
+	for(int i = 0; i < index; i++) printf("\t");
+	printf("</%s>\n", thisData->textType);
+}
+
 /* Test entry point.  Delete later */
 int main(int argc, char** argv)
 {
 	lexfile(argv[1]);
 	listnode=list->start;
 	nextnode=listnode->next;
-	TreeNode* statementsNode=statements();
-	printxml(0, statementsNode);
+	dlinklist* statementsNode=statements();
+
+	node* current = statementsNode->start;	
+	while(current!=NULL)
+	{
+		printXML((BinaryTreeNode*)current->data, 0);
+		current=current->next;
+	}
 }
 
-TreeNode* statements()
+dlinklist* statements()
 {
-	TreeNode* statementsNode = newNode();
-	statementsNode->type="Statements";
-
-	append(statementsNode->children, statement());
+	dlinklist* statementsList = newlist();
 
 	while (!match(EOI))
 	{
-		append(statementsNode->children, statement());
+		append(statementsList, statement());
 	}
-	return statementsNode;
+	return statementsList;
 }
 
-TreeNode* statement()
+BinaryTreeNode* statement()
 {
-	TreeNode* statementNode = newNode();
-	statementNode->type="Statement";
+	BinaryTreeNode* statementNode;
 
 	if(match(WHI))
 	{
 		advance();
-		while_statement();
+		return while_statement();
 	}
-	if(match(IF))
+	else if(match(IF))
 	{
 		advance();
-		if_statement();
+		return if_statement();
+	}
+	else if(match(VAR))
+	{
+		statementNode = basic_statement();
+
+		if(match(SEMI))
+			advance();
+		else
+			exitWithError("Expected semicolon after statement", ERROR_MISSING_SEMI);
+
+		return statementNode;
 	}
 	else
 	{
-		append(statementNode->children,	basic_statement());
-	}
-
-	if(match(SEMI))
-		advance();
-
-	return statementNode;
-}
-
-TreeNode* while_statement()
-{
-	return NULL;
-	if(match(LP))
-	{
-		advance();
-		expression();
-		if(match(RP))
-			advance();
-		if(match(LCP))
-			advance();
-		
-		while(!match(RCP))
-		{
-			statement();
-		}
-
-		if (match(RCP))
-			advance();
+		exitWithError("Invalid statement beginning", ERROR_INVALID_STATEMENT);
 	}
 }
 
-TreeNode* if_statement()
+BinaryTreeNode* while_statement()
 {
 	return NULL;
 }
 
-TreeNode* basic_statement()
+BinaryTreeNode* if_statement()
 {
-	TreeNode* leftArg =	leftarg();
-	append(leftArg->children, expression());
-	return leftArg;
+	return NULL;
 }
 
-TreeNode* leftarg()
+/* 
+ * Returns basic statement node of the form ASSIGN LEFTNODE RIGHTNODE 
+ */
+BinaryTreeNode* basic_statement()
 {
+	BinaryTreeNode* basicStatementNode = newBinaryTreeNode();
+	BinaryTreeNode* varStatNode = varStatement();
+	BinaryTreeNode* expNode = expression();
 
-	TreeNode* leftArg=newNode();
-	leftArg->type="Assign";	
+	addBTNode(basicStatementNode, varStatNode, LEFT);
+	addBTNode(basicStatementNode, expNode, RIGHT);	
+	
+	ASTNode* basicStatementData=newASTNode(EQ, "Assign", NULL);
+	basicStatementNode->data=basicStatementData;
+
+	return basicStatementNode;
+}
+
+/* 
+ * Returns node with variable name
+ */
+BinaryTreeNode* varStatement()
+{
+	BinaryTreeNode* varNode=newBinaryTreeNode();
+	char* varName;
+
 	if(match(VAR))
 	{
-		leftArg->value=getLex();
+		varName=getLex();
+		advance();	
+	}
+	else exitWithError("Invalid statement beginning", ERROR_INVALID_STATEMENT); 
+
+	if(match(EQ))
 		advance();
-		if(match(EQ))
-		{
-			advance();
-		}
-	}
-	return leftArg;
+	else exitWithError("Expected '=' after variable", ERROR_INVALID_STATEMENT);
+
+	ASTNode* varNodeData=newASTNode(VAR, "Variable", varName);
+	varNode->data=varNodeData;
+
+	return varNode;
 }
 
-TreeNode* expression()
+BinaryTreeNode* expression()
 {
-	TreeNode* termNode = term();
-	TreeNode* expAl = expressionalpha();
-	if(expAl != NULL)
-	{
-		prepend(expAl->children, termNode);
-		return expAl;
-	}
-	else
-	{
+	BinaryTreeNode* termNode = term();
+	BinaryTreeNode* expAl = expressionalpha();
+
+	if(expAl == NULL)
 		return termNode;	
-	}
+
+	addBTNode(expAl, termNode, LEFT);
+	return expAl;
 }
 
-TreeNode* expressionalpha()
+BinaryTreeNode* expressionalpha()
 {	
-	TreeNode* expAl=newNode();
-	expAl->type="Expression";
+	ASTNode* expAlData;
+
 	if(match(GT))
 	{
-		expAl->value=getLex();
+		expAlData=newASTNode(GT, "GreaterThan", NULL);
 		advance();
 	}
 	else if(match(LT))
 	{
-		expAl->value=getLex();
+		expAlData=newASTNode(LT, "LessThan", NULL);
 		advance();
 	}
 	else if (match(PLUS))
 	{
-		expAl->value=getLex();
+		expAlData=newASTNode(PLUS, "Plus", NULL);
 		advance();
 	}
 	else if (match(MINUS))
 	{
-		expAl->value=getLex();
+		expAlData=newASTNode(MINUS, "Minus", NULL);
 		advance();
 	}
 	else
 	{
-		free(expAl);
 		return NULL;
 	}
-	append(expAl->children, term());
-	if(legallookahead(4, GT, LT, PLUS, MINUS))
-		append(expAl->children, expressionalpha());
+	BinaryTreeNode* expAl=newBinaryTreeNode();
+	expAl->data=expAlData;
 
-	return expAl;
+	BinaryTreeNode* thisTerm=term();
+	
+	/* if there is a +->< after first term, get repeated terms and put them on the left */
+	if(legallookahead(4, GT, LT, PLUS, MINUS))
+	{
+		BinaryTreeNode* nextExp=expressionalpha();
+		addBTNode(nextExp, thisTerm, LEFT);
+		addBTNode(expAl, nextExp, RIGHT);
+		return expAl;
+	}
+	else
+	{
+		addBTNode(expAl, thisTerm, RIGHT);
+		return expAl;
+	}
 }
 
-TreeNode* term()
+BinaryTreeNode* term()
 {
-	TreeNode* fac = factor();
-	TreeNode* term = termalpha();
-	prepend(term->children, fac);
+	BinaryTreeNode* fac = factor();
+	BinaryTreeNode* term = termalpha();
+	
+	if(term==NULL)
+		return fac;
+
+	addBTNode(term, fac, LEFT);
 	return term;
 }
 
-TreeNode* termalpha()
+BinaryTreeNode* termalpha()
 {
-	TreeNode* termAl = newNode();
-	termAl->type="Term";
+	ASTNode* termAlData;
+
 	if (match(TIMES))
 	{
-		termAl->value=getLex();
+		termAlData=newASTNode(TIMES, "Multiply", NULL);
 		advance();
 	}	
 	else if (match(DIV))
 	{
-		termAl->value=getLex();
-		advance();
-	}
-	TreeNode* factorNode = factor();
-	if(factorNode!=NULL)
-	{
-		append(termAl->children, factorNode);
-	}
-
-	if(legallookahead(2, TIMES, DIV))
-		append(termAl->children, termalpha());
-
-	return termAl;
-}
-
-TreeNode* factor()
-{
-	TreeNode* factorNode = newNode();
-	factorNode->type="Factor";
-	factorNode->isLeaf=1;
-	if(match(NUM))
-	{
-		factorNode->type = "Number";
-		factorNode->value = getLex(); 
-		advance();
-	}
-	else if (match(VAR))
-	{
-		factorNode->type = "Variable";
-		factorNode->value = getLex();
+		termAlData=newASTNode(DIV, "Divide", NULL);
 		advance();
 	}
 	else
 	{
 		return NULL;
 	}
+
+	BinaryTreeNode* termAl = newBinaryTreeNode();
+	termAl->data=termAlData;
+	BinaryTreeNode* fac = factor();
+
+	if(legallookahead(2, TIMES, DIV))
+	{
+		BinaryTreeNode* nextTerm = termalpha();
+		addBTNode(nextTerm, fac, LEFT);
+		addBTNode(termAl, nextTerm, RIGHT);
+		return termAl;
+	}
+	else
+	{
+		addBTNode(termAl, fac, RIGHT);
+		return termAl;
+	}
+}
+
+BinaryTreeNode* factor()
+{
+	BinaryTreeNode* factorNode = newBinaryTreeNode();
+	ASTNode* factorData;
+
+	if(match(NUM))
+	{
+		factorData=newASTNode(NUM, "Number", getLex()); 
+		advance();
+	}
+	else if (match(VAR))
+	{
+		factorData=newASTNode(VAR, "Variable", getLex());
+		advance();
+	}
+	else
+		exitWithError("Expected variable or constant value", ERROR_INVALID_STATEMENT);
+
+	factorNode->data=factorData;
 	return factorNode;
 }
 
@@ -277,4 +344,13 @@ void exitWithError(char* message, int error)
 {
 	printf("%s\n", message);
 	exit(error);
+}
+
+ASTNode* newASTNode(int type, char* textType, char* value)
+{
+	ASTNode* newNode = malloc(sizeof(ASTNode));
+	newNode->type=type;
+	newNode->textType=textType;
+	newNode->value=value;
+	return newNode;
 }
