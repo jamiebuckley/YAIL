@@ -24,6 +24,7 @@ typedef struct dlinklist
 } dlinklist;
 
 typedef int(*nodeOp)(void*);
+typedef int(*nodeCompareOp)(node*, void*);
 
 dlinklist* newlist();
 
@@ -31,5 +32,8 @@ int append(dlinklist* list, void* data);
 int prepend(dlinklist* list, void* data);
 int insert(dlinklist* list, node* thisNode, void* data, int before);
 int foreach(dlinklist* list, nodeOp callback);
+int list_remove(dlinklist* list, void* data, nodeOp removeFunc);
+int list_remove_comparator(dlinklist* list, void* data, nodeOp removeFunc, nodeCompareOp comparator, void* comparison);
+int list_remove_node(dlinklist* list, node* thisNode, nodeOp removeFunc);
 
 #endif

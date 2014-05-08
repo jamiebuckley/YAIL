@@ -43,8 +43,7 @@ dlinklist* newlist()
 int append(dlinklist* list, void* data)
 {
 	node* addnode = malloc(sizeof(node));
-	addnode->data = data;	
-	
+	addnode->data = data;		
 	list->size++;
 	
 	if(list->start == NULL)	
@@ -128,4 +127,76 @@ int foreach(dlinklist* list, nodeOp callback)
 		current=current->next;
 	}
 	return 0;
+}
+
+int list_remove(dlinklist* list, void* data, nodeOp removeFunc)
+{
+	node* thisNode;	
+	node* current = list->start;
+
+	while(current!=NULL)
+	{
+		if(current->data == data)
+		{
+			if(list->start == current) list->start=current->next;
+			else if(list->end == current) list->end = current->prev;
+
+			if(current->prev != NULL) current->prev->next = current->next;
+			if(current->next != NULL) current->next->prev = current->prev;
+			thisNode=current;
+
+			if(removeFunc != NULL) removeFunc(thisNode->data);	
+			free(thisNode);	
+
+			list->size--;
+
+			return 0;	
+		}
+		current=current->next;
+	}		
+	return -1;
+}
+
+int list_remove_comparator(dlinklist* list, void* data, nodeOp removeFunc, nodeCompareOp comparator, void* comparison)
+{
+	node* thisNode;	
+	node* current = list->start;
+
+	while(current!=NULL)
+	{
+		if(comparator(current, comparison))
+		{
+			if(list->start == current) list->start=current->next;
+			else if(list->end == current) list->end = current->prev;
+
+			if(current->prev != NULL) current->prev->next = current->next;
+			if(current->next != NULL) current->next->prev = current->prev;
+			thisNode=current;
+
+			if(removeFunc != NULL) removeFunc(thisNode->data);	
+			free(thisNode);	
+
+			list->size--;
+			if(list->size==0)
+			{
+				list->start=NULL;
+				list->end=NULL;
+			}
+
+			return 0;	
+		}
+		current=current->next;
+	}		
+	return -1;
+}
+
+int list_remove_node(dlinklist* list, node* node, nodeOp removeFunc)
+{
+	list->size--;
+
+	if(node->prev != NULL) node->prev->next = node->next;
+	if(node->next != NULL) node->next->prev = node->prev;
+
+	if(removeFunc != NULL) removeFunc(node->data);
+	free(node);
 }
