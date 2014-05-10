@@ -15,6 +15,11 @@
 #define ERROR_MISMATCHED_PAREN 500
 #define ERROR_INVALID_STATEMENT 501
 #define ERROR_MISSING_SEMI 502
+#define ERROR_MISSING_PARENTHESES 503
+
+
+/* New types for the AST */
+#define STMNTLIST 200
 
 typedef struct ASTNode
 {
@@ -22,6 +27,10 @@ typedef struct ASTNode
 	char* textType;
 	char* value;
 } ASTNode;
+
+dlinklist* parse(char* filename);
+
+void printXML(BinaryTreeNode* thisNode, int index);
 
 dlinklist* statements();
 BinaryTreeNode* statement();

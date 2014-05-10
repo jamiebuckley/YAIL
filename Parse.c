@@ -25,28 +25,47 @@ void printXML(BinaryTreeNode* thisNode, int index)
 {
 	if(!thisNode)
 	{
-		printf("NULL\n");
+		printf("thisNode = NULL\n");
 		return;
 	//	exitWithError("Cannot print null node", -1);
 	}
 	if(!thisNode->data)
 	{
-		printf("NULL\n");
+		printf("thisNode->data = NULL\n");
 		return;
 	//	exitWithError("Node has no data", -2);
 	}
-	ASTNode* thisData = (ASTNode*)thisNode->data;	
-	
-	for(int i = 0; i < index; i++) printf("\t");
+	ASTNode* thisData=thisNode->data;
+	if(thisData->type==WHI || thisData->type==IF)
+	{
+		for(int i = 0; i < index; i++) printf("\t");
+		printf("<%s>\n", thisData->textType);	
+		printXML(thisNode->left, index+1);
+
+		dlinklist* stmtList = thisNode->right->data;
+		node* n = stmtList->start;
+
+		while(n != NULL)
+		{
+			printXML((BinaryTreeNode*)n->data, index+1);
+			n=n->next;
+		}
+		
+		for(int i = 0; i < index; i++) printf("\t");	
+		printf("</%s>\n", thisData->textType);
+		return;
+	}	
 
 	if(!thisNode->isLeaf)
 	{
+		for(int i = 0; i < index; i++) printf("\t");
 		printf("<%s>\n", thisData->textType);
 		printXML(thisNode->left, index+1);
 		printXML(thisNode->right, index+1);
 	}
 	else
 	{
+		for(int i = 0; i < index; i++) printf("\t");
 		printf("<%s value=%s />\n", thisData->textType, thisData->value);
 		return;
 	}
@@ -55,7 +74,20 @@ void printXML(BinaryTreeNode* thisNode, int index)
 	printf("</%s>\n", thisData->textType);
 }
 
-/* Test entry point.  Delete later */
+/* Takes a filename and an uninitialized dlinklist pointer, sets pointer to AST for file, returns 0 on succes */
+dlinklist* parse(char* filename)
+{
+	lexfile(filename);
+	listnode=list->start;
+	nextnode=listnode->next;
+
+	dlinklist* AST=statements();
+	return AST;
+}
+
+/*
+ *
+ Test entry point.  Delete later
 int main(int argc, char** argv)
 {
 	lexfile(argv[1]);
@@ -70,6 +102,7 @@ int main(int argc, char** argv)
 		current=current->next;
 	}
 }
+*/
 
 dlinklist* statements()
 {
@@ -115,12 +148,89 @@ BinaryTreeNode* statement()
 
 BinaryTreeNode* while_statement()
 {
-	return NULL;
+	if(!match(LP))
+		exitWithError("Expected open parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+
+	BinaryTreeNode* conditionExpression = expression();
+
+	if (!match(RP))
+		exitWithError("Expected close parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+
+	if(!match(LCP))
+		exitWithError("Expected open curly parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+	
+	dlinklist* statementList = newlist();
+	while(!match(RCP))
+	{
+		append(statementList, statement());
+		if(match(EOF))
+			exitWithError("Reached end of input in while loop. Check for missing parentheses", ERROR_MISSING_PARENTHESES);
+	}
+	advance();
+
+	/* Create a Binary Tree that stores the Conditional Expression on the left, and the Statement list on the right */
+
+	BinaryTreeNode* while_statementNode=newBinaryTreeNode();
+	ASTNode* whileStatementData=newASTNode(WHI, "While", NULL);
+	while_statementNode->data=whileStatementData;
+
+	BinaryTreeNode* statementsNode = newBinaryTreeNode();
+	statementsNode->data = statementList;
+
+	addBTNode(while_statementNode, conditionExpression, LEFT);
+	addBTNode(while_statementNode, statementsNode, RIGHT);
+
+	return while_statementNode;
+
 }
 
 BinaryTreeNode* if_statement()
 {
-	return NULL;
+	if(!match(LP))
+		exitWithError("Expected open parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+
+	BinaryTreeNode* conditionExpression = expression();
+
+	if (!match(RP))
+		exitWithError("Expected close parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+
+	if(!match(LCP))
+		exitWithError("Expected open curly parentheses", ERROR_MISSING_PARENTHESES);
+
+	advance();
+	
+	dlinklist* statementList = newlist();
+	while(!match(RCP))
+	{
+		append(statementList, statement());
+		if(match(EOF))
+			exitWithError("Reached end of input in while loop. Check for missing parentheses", ERROR_MISSING_PARENTHESES);
+	}
+	advance();
+
+	/* Create a Binary Tree that stores the Conditional Expression on the left, and the Statement list on the right */
+
+	BinaryTreeNode* if_statementNode=newBinaryTreeNode();
+	ASTNode* ifStatementData=newASTNode(IF, "If", NULL);
+	if_statementNode->data=ifStatementData;
+
+	BinaryTreeNode* statementsNode = newBinaryTreeNode();
+	statementsNode->data = statementList;
+
+	addBTNode(if_statementNode, conditionExpression, LEFT);
+	addBTNode(if_statementNode, statementsNode, RIGHT);
+
+	return if_statementNode;
 }
 
 /* 
