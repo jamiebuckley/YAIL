@@ -1,3 +1,8 @@
+/* HashMap header for YAIL
+ * Created 8th May 2014
+ * Jamie Buckley
+*/
+
 #ifndef HASHMAP_HEADER
 #define HASHMAP_HEADER
 

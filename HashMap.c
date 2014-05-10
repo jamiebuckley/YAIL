@@ -1,3 +1,8 @@
+/* HashMap for YAIL
+ * Created 8th May 2014
+ * Jamie Buckley
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +45,7 @@ HashMap* newHashMap(int size)
 	result->numOfBuckets = size;
 	result->buckets = calloc(size, sizeof(dlinklist));
 
+	return result;
 }
 
 int hashMap_hash(char* data, int size)
@@ -59,7 +65,7 @@ int hashMap_hash(char* data, int size)
 int hashMap_put(HashMap* hashMap, char* value, void* data)
 {
 	int bucketIndex = hashMap_hash(value, hashMap->numOfBuckets);
-	printf("Inserting %s into bucket index %d with value %s\n", (char*)data, bucketIndex, value);
+
 	HashMapEntry* entry = malloc(sizeof(HashMapEntry));
 	entry->value = value;
 	entry->data = data;
