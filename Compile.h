@@ -8,7 +8,25 @@
 
 #include "Parse.h"
 
+#include "HashMap.h"
 
-int makeSymTab(dlinklist* AST);
+#include "ILCGen.h"
+
+#define INTEGER 1
+#define FLOAT	2
+#define STRING  3
+
+typedef struct SymTabEntry
+{
+	int type;
+	char* name;	
+	BinaryTreeNode* ASTRef;
+} SymTabEntry;
+
+int processAST(dlinklist* AST);
+int makeSymTab(BinaryTreeNode* AST);
+int getType(BinaryTreeNode* treeNode);
+int getOpType(BinaryTreeNode* treeNode);
+int printSymbolTable(HashMap* symbolTable);
 
 #endif

@@ -462,5 +462,6 @@ ASTNode* newASTNode(int type, char* textType, char* value)
 	newNode->type=type;
 	newNode->textType=textType;
 	newNode->value=value;
+	newNode->hierarchyType=0;
 	return newNode;
 }

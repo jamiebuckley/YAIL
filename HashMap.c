@@ -45,6 +45,8 @@ HashMap* newHashMap(int size)
 	result->numOfBuckets = size;
 	result->buckets = calloc(size, sizeof(dlinklist));
 
+	result->keys=newlist();
+
 	return result;
 }
 
@@ -70,6 +72,8 @@ int hashMap_put(HashMap* hashMap, char* value, void* data)
 	entry->value = value;
 	entry->data = data;
 	append(hashMap->buckets+bucketIndex, entry);
+
+	append(hashMap->keys, value);
 }
 
 HashMapEntry* hashMap_get(HashMap* hashMap, char* data)

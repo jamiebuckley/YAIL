@@ -18,6 +18,7 @@ typedef struct HashMap
 {
 	int numOfBuckets;
 	dlinklist* buckets;
+	dlinklist* keys;
 } HashMap;
 
 HashMap* newHashMap(int size);

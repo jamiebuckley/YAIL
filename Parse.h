@@ -17,15 +17,12 @@
 #define ERROR_MISSING_SEMI 502
 #define ERROR_MISSING_PARENTHESES 503
 
-
-/* New types for the AST */
-#define STMNTLIST 200
-
 typedef struct ASTNode
 {
 	int type;
 	char* textType;
 	char* value;
+	int hierarchyType;
 } ASTNode;
 
 dlinklist* parse(char* filename);
