@@ -1,0 +1,12 @@
+#0 LOAD 0
+#1 STORE 0 @x
+#2 LOAD 0
+#3 STORE 2 @y
+#4 LOAD @x
+#5 LOAD 1
+#6 Plus 4 5
+#7 STORE 6 @x
+#8 LOAD @y
+#9 LOAD 1
+#10 Plus 8 9
+#11 STORE 10 @y

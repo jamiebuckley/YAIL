@@ -18,9 +18,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Compile.h"
+#include <string.h>
 
 
 HashMap* symbolTable;
+
+int verbose=0;
 
 int main(int argc, char** argv)
 {
@@ -28,6 +31,15 @@ int main(int argc, char** argv)
 	/* perform basic checks on input filename */
 	/* DO THIS LATER */
 	/*  */
+	
+	for(int i = 0; i < (argc); i++)
+	{
+		if(!strcmp("-v", argv[i]))
+		{
+			printf("Verbose Mode Enabled\n");
+			verbose=1;	
+		}
+	}
 
 	symbolTable=newHashMap(64);
 
@@ -36,20 +48,43 @@ int main(int argc, char** argv)
 
 	processAST(AST);
 
-	node* current = AST->start;	
-	while(current!=NULL)
+	FILE* f = fopen("output", "w");
+	if(f==NULL)
 	{
-		printXML((BinaryTreeNode*)current->data, 0);
-		current=current->next;
+		printf("Error opening output file\n");
 	}
 
-	printSymbolTable(symbolTable);
+	if(verbose)
+	{
+		printf("AST TREE AS XML:\n");
+		node* current = AST->start;	
+		while(current!=NULL)
+		{
+			printXML((BinaryTreeNode*)current->data, 0);
+			current=current->next;
+		}
+		printf("\n");
+	}
 
-	printILC(AST);
+	if(verbose)
+	{
+		printSymbolTable(symbolTable);
+		printf("\n");
+	}
+	
+	if(verbose)
+		printf("ILC OUTPUT\n");
+
+	makeILC(AST, f);
+
+	printf("\n");
+
+
 }
 
 int printSymbolTable(HashMap* symbolTable)
 {
+	printf("SYMBOL TABLE:\n");
 	dlinklist* keys = symbolTable->keys;
 
 	node* keyNode = keys->start;
@@ -62,6 +97,7 @@ int printSymbolTable(HashMap* symbolTable)
 
 		keyNode=keyNode->next;
 	}
+	printf("\n");
 }
 
 int processAST(dlinklist* AST)

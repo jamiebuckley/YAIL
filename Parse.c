@@ -16,7 +16,6 @@
 
 node* listnode;
 node* nextnode;
-extern dlinklist* list;
 
 int tabindex = 0;
 
@@ -77,7 +76,7 @@ void printXML(BinaryTreeNode* thisNode, int index)
 /* Takes a filename and an uninitialized dlinklist pointer, sets pointer to AST for file, returns 0 on succes */
 dlinklist* parse(char* filename)
 {
-	lexfile(filename);
+    dlinklist* list=lexfile(filename);
 	listnode=list->start;
 	nextnode=listnode->next;
 

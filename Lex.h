@@ -29,8 +29,9 @@
 
 #define ERROR_NO_MATCH 404
 
+#include "List.h"
 
-int lexfile(char* filename);
+dlinklist* lexfile(char* filename);
 int loadFile(char* filename);
 int lex();
 void addLexeme(int nodeType, char* srcdata, int ndata);

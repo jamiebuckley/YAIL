@@ -10,13 +10,11 @@
 #include <ctype.h>
 
 #include "Lex.h"
-#include "List.h"
 
 char* data;
 char* current;
-
-
 dlinklist* list;
+extern int verbose;
 
 int printStuff(void* data)
 {
@@ -33,12 +31,12 @@ int main(int argc, char** argv)
 	lexfile("test.yail");
 }*/
 
-int lexfile(char* filename)
+dlinklist* lexfile(char* filename)
 {
     if(loadFile(filename))
     {
 	    printf("Error opening file\n");
-	    return -1;
+	    return NULL;
     }
 
 	list = newlist();
@@ -50,8 +48,14 @@ int lexfile(char* filename)
     }
     while(!res);
 
-	foreach(list, printStuff);
+	if(verbose)
+	{
+		printf("LEXER OUTPUT:\n");
+		foreach(list, printStuff);
+		printf("\n");
+	}
 
+	return list;
 }
 
 /* Load <filename> into the data buffer */

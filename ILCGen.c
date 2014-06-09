@@ -22,19 +22,70 @@
 #include "ILCGen.h"
 
 int lastNum = 0;
+extern int verbose;
 
-int printILC(dlinklist* AST)
+dlinklist* ILCList;
+
+int makeILC(dlinklist* AST, FILE* f)
 {
+	ILCList = newlist();	
+
 	node* current = AST->start;
 
 	while(current != NULL)
 	{
-		outputNode(current->data);	
+		outputNode(current->data, f);	
 		current=current->next;
 	}
 }
 
-int outputNode(BinaryTreeNode* thisNode)
+int outputNode(BinaryTreeNode* thisNode, dlinklist* list, FILE* f)
+{
+	BinaryTreeNode* left = thisNode->left;
+	BinaryTreeNode* right = thisNode->right;
+
+	ASTNode* thisData = thisNode->data;
+	int type = thisData->type;
+
+	switch(type)
+	{
+		case EQ:
+				break;
+		case PLUS:
+		case MINUS:
+		case TIMES:
+		case DIV:
+				break;
+		case VAR:
+				break;
+		case NUM:
+				break;
+		case IF:
+				break;
+		case WHI:
+				break;
+	}
+}
+
+int handleWhile(BinaryTreeNode* thisNode)
+{
+	//get the comparison statement
+	//get the middle statements
+	//prepend a conditional jump to the end based on the comparison statement
+	
+	dlinklist* statementList = thisNode->right->data; 
+	node* n = statementList->start;
+
+	int lastCommand = -1;
+	while(n != NULL)
+	{
+		lastCommand = outputNode(n->data);
+		n=n->next;
+	}
+
+}
+
+int outputNodeTwo(BinaryTreeNode* thisNode, FILE* f)
 {
 	BinaryTreeNode* left = thisNode->left;
 	BinaryTreeNode* right = thisNode->right;
@@ -46,61 +97,113 @@ int outputNode(BinaryTreeNode* thisNode)
 	{
 		ASTNode* varNodeData = left->data;
 		char* varName = varNodeData->value;
-		int res = outputNode(thisNode->right);		
-		outputStoreVar(res, varName); 
+		int res = outputNode(thisNode->right, f);		
+		outputStoreVar(res, varName, f); 
 	}
 	else if(type==PLUS || type == MINUS || type == TIMES || type == DIV)
 	{
-		int l = outputNode(left); 
-		int r = outputNode(right);
-		return operand(thisData->value, l, r);
+		int l = outputNode(left, f); 
+		int r = outputNode(right, f);
+		return operand(thisData->textType, l, r, f);
 	}
 	else if(type==VAR)
 	{
-		return outputLoadVar(thisData->value);	
+		return outputLoadVar(thisData->value, f);	
 	}
 	else if(type==NUM)
 	{
-		return outputLoadCon(thisData->value);
+		return outputLoadCon(thisData->value, f);
+	}	
+	else if(type==IF)
+	{	
+		dlinklist* stmtList = thisNode->right->data;
+		node* n = stmtList->start;
+
+		printf("IF\n");
+
+		while(n != NULL)
+		{
+			outputNode(n->data, f);
+			n=n->next;
+		}
+
+		printf("ENDIF\n");
 	}
+	else if(type==WHI)
+	{
+		dlinklist* stmtList = thisNode->right->data;
+		node* n = stmtList->start;
+
+		printf("WHILE\n");
+
+		while(n != NULL)
+		{
+			outputNode(n->data, f);
+			n=n->next;
+		}
+
+		printf("ENDWHILE\n");
+
+	}
+
 }
 
-int outputLoadVar(char* varName)
+int outputLoadVar(char* varName, FILE* f)
 {
 	int num = lastNum;
-	printf("#%d LOAD @%s\n", num, varName);
+	fprintf(f, "#%d LOAD @%s\n", num, varName);
+
+	if(verbose)	
+		printf("#%d LOAD @%s\n", num, varName);
+
 	lastNum++;
 	return num;
 }
 
-int outputLoadCon(char* val)
+int outputLoadCon(char* val, FILE* f)
 {
 	int num = lastNum;
-	printf("%d LOAD %s\n", num, val);
+	fprintf(f, "#%d LOAD %s\n", num, val);
+	
+	if(verbose)
+		printf("#%d LOAD %s\n", num, val);
+
 	lastNum++;
 	return num;
 }
 
-int outputStoreVar(int inputNum, char* varName)
+int outputStoreVar(int inputNum, char* varName, FILE* f)
 {
 	int num = lastNum;
-	printf("#%d STORE %d @%s\n", num, inputNum, varName); 
+	fprintf(f, "#%d STORE %d @%s\n", num, inputNum, varName); 
+
+	if(verbose)
+		printf("#%d STORE %d @%s\n", num, inputNum, varName); 
+
 	lastNum++;
 	return num;
 }
 
-int operand(char* type, int R1, int R2)
+int outputOperand(char* type, int R1, int R2, FILE* f)
 {
 	int num = lastNum;
+	fprintf(f, "#%d %s %d %d\n", num, type, R1, R2);
+
+	if(verbose)
 	printf("#%d %s %d %d\n", num, type, R1, R2);
+
 	lastNum++;
 	return num;
 }
 
-int jump(char* type, int number)
+int outputJump(char* type, int number, FILE* f)
 {
 	int num = lastNum;
-	printf("%d %s %d\n", num, type, number);
+	fprintf(f, "#%d %s %d\n", num, type, number);
+
+	if(verbose)	
+		printf("#%d %s %d\n", num, type, number);
+
    	lastNum++;   
 	return num;
 }
