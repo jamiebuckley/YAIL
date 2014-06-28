@@ -52,13 +52,15 @@ int makeILC(dlinklist* AST, FILE* f)
 
 	append(ILCList, endLine);
 
+
+	if(verbose) printf("ILC Output:\n");
+
 	node* currentLine = ILCList->start;
 	while(currentLine != NULL)
 	{
 		ILCLine* thisLine = currentLine->data;
 		fprintf(f, "%d %d %d\n", thisLine->operation, thisLine->var1, thisLine->var2);	
-		if(verbose)
-		printf("#%d: %s %d %d\n",thisLine->lnum, cNames[thisLine->operation], thisLine->var1, thisLine->var2);	
+		if(verbose) printf("#%d: %s %d %d\n",thisLine->lnum, cNames[thisLine->operation], thisLine->var1, thisLine->var2);	
 		currentLine = currentLine->next;
 	}
 	return 0;

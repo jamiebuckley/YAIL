@@ -34,4 +34,8 @@ To compile, run make in command line
 
 **2.**
 Run output file YAIL with syntax:
-YAIL <source_filename> i.e. YAIL test.yail
+YAIL <source_filename> i.e. ./YAIL test.yail
+
+For verbose output, use the -v option
+
+./YAIL test.yail -v

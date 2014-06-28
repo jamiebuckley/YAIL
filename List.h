@@ -18,7 +18,6 @@ typedef struct node
 typedef struct dlinklist
 {
 	int size;
-	size_t elementSize;
 	node* start;
 	node* end;
 } dlinklist;

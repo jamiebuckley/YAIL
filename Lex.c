@@ -163,7 +163,7 @@ void addLexeme(int nodeType, char* srcdata, int ndata)
 	word->type=nodeType;
 	word->value = malloc((ndata+1) * sizeof(char));
 	strncpy(word->value, srcdata, ndata*sizeof(char)); 
-	word->value[ndata]='\0';
 	
+	word->value[ndata]='\0';	
 	append(list, word);
 }

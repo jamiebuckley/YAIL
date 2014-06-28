@@ -118,6 +118,8 @@ BinaryTreeNode* statement()
 {
 	BinaryTreeNode* statementNode;
 
+	lexeme* lxm = (lexeme*)(listnode->data);
+
 	if(match(WHI))
 	{
 		advance();
@@ -263,7 +265,7 @@ BinaryTreeNode* varStatement()
 		varName=getLex();
 		advance();	
 	}
-	else exitWithError("Invalid statement beginning", ERROR_INVALID_STATEMENT); 
+	else exitWithError("Invalid variable statement beginning", ERROR_INVALID_STATEMENT); 
 
 	if(match(EQ))
 		advance();

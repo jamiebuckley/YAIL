@@ -27,8 +27,7 @@ int nextAddress = 0;
 int verbose=0;
 
 int main(int argc, char** argv)
-{
-	
+{	
 	/* perform basic checks on input filename */
 	/* DO THIS LATER */
 	/*  */
@@ -42,55 +41,47 @@ int main(int argc, char** argv)
 		}
 	}
 
+	/* Create the symbol table HashMap */
 	symbolTable=newHashMap(64);
 
+
+	/* Load the Abstract Syntax Tree into the AST linked list */
 	dlinklist* AST;
 	AST = parse(argv[1]);
 	processAST(AST);
 
-	if(verbose)
-	{
-		printf("AST TREE AS XML:\n");
-		node* current = AST->start;	
-		while(current!=NULL)
-		{
-			printXML((BinaryTreeNode*)current->data, 0);
-			current=current->next;
-		}
-		printf("\n");
-	}
-
-	if(verbose)
-	{
+	/* if verbose mode, print the tree and symbol table */
+	if(verbose) 
+	{ 
+		printAST(AST);
 		printSymbolTable(symbolTable);
-		printf("\n");
-	}
-	
-	if(verbose)
-		printf("ILC OUTPUT\n");
+	}	
 
+	dlinklist* LIR = createLinearIR(symbolTable, AST);
+
+	/*
 	char* outputFileName = getNameWithoutExtension(argv[1]);
 	if(outputFileName == NULL)
-	{
 		printf("Error generating output file name\n");
-	}
 
 	FILE* f = fopen(strcat(outputFileName, ".yavm"), "w");
-	//free(outputFileName);
 
-	if(f==NULL)
-	{
-		printf("Error opening output file\n");
-	}
-	else
-	{
-		if(verbose)
-			printf("Opened file for writing\n");
-	}
+	if(f==NULL)	printf("Error opening output file\n");
 
 	makeILC(AST, f);
+	*/
+}
 
-
+int printAST(dlinklist* AST)
+{
+	printf("AST TREE AS XML:\n");
+	node* current = AST->start;	
+	while(current!=NULL)
+	{
+		printXML((BinaryTreeNode*)current->data, 0);
+		current=current->next;
+	}
+	printf("\n");
 
 }
 
@@ -126,13 +117,15 @@ int processAST(dlinklist* AST)
 	return 0;
 }
 
+/*
+ * Walk tree and look for all variable declarations
+ * If currentnode isn't leaf (and isn't a while loop)
+ * Check type of left and right tree, and set current type to (operation between TYPEA and TYPEB)
+ * if current is leaf, return that type
+ * if current is EQ, set (or create) Var with name (lefttree) and type (righttree)
+ */
 int makeSymTab(BinaryTreeNode* AST)
 {
-	//Walk tree and look for all variable declarations
-	//If currentnode isn't leaf (and isn't a while loop)
-	//Check type of left and right tree, and set current type to (operation between TYPEA and TYPEB)
-	//if current is leaf, return that type
-	//if current is EQ, set (or create) Var with name (lefttree) and type (righttree)
 	ASTNode* currentData = AST->data;
 
 
@@ -181,13 +174,13 @@ int getType(BinaryTreeNode* treeNode)
 	return nodeType;
 }
 
+/*
+ * Get the type at the current point of the tree
+ * If it's a leaf, return the simple type
+ * Otherwise, work out what the result of leftNode OP rightNode will be
+ */
 int getOpType(BinaryTreeNode* treeNode)
 {
-	//if tree is a loop or conditional, ignore it
-	//otherwise it's an expression
-	//if its a leaf, return the type
-	//if its not, return the result of the left leaf OP the right leaf
-
 	ASTNode* currentData = treeNode->data;
 
 	if (treeNode->isLeaf)

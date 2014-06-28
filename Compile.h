@@ -10,7 +10,7 @@
 
 #include "HashMap.h"
 
-#include "ILCGen.h"
+#include "ILCLinear.h"
 
 #define INTEGER 1
 #define FLOAT	2
@@ -28,7 +28,7 @@ int processAST(dlinklist* AST);
 int makeSymTab(BinaryTreeNode* AST);
 int getType(BinaryTreeNode* treeNode);
 int getOpType(BinaryTreeNode* treeNode);
+int printAST(dlinklist* AST);
 int printSymbolTable(HashMap* symbolTable);
 char* getNameWithoutExtension(char* filename);
-
 #endif
