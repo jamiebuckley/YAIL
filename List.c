@@ -77,6 +77,7 @@ int prepend(dlinklist* list, void* data)
 	list->start->prev = addnode;
 	addnode->next = list->start;
 	list->start = addnode;
+	return 0;
 }
 
 int insert(dlinklist* list, node* thisNode, void* data, int before)
@@ -113,6 +114,7 @@ int insert(dlinklist* list, node* thisNode, void* data, int before)
 
 		current=current->next;
 	}
+	return 0;
 }
 
 int foreach(dlinklist* list, nodeOp callback)
@@ -199,4 +201,47 @@ int list_remove_node(dlinklist* list, node* node, nodeOp removeFunc)
 
 	if(removeFunc != NULL) removeFunc(node->data);
 	free(node);
+
+	return 0;
+}
+
+int prepend_all(dlinklist* list, dlinklist* addList)
+{
+	node* current = addList->end;
+	
+	while(current != NULL)
+	{
+		prepend(list, current->data);
+		current = current->prev;
+	}
+
+	return 0;
+}
+
+int append_all(dlinklist* list, dlinklist* addList)
+{
+	node* current = addList->start;
+
+	while(current != NULL)
+	{
+		append(list, current->data);
+		current = current->next;
+	}
+
+	return 0;
+}
+
+int list_delete(dlinklist* list)
+{
+	node* current = list->start;
+
+	while(current != NULL)
+	{
+		free(current->data);
+		node* old = current;
+		current=current->next;
+		free(old);
+	}
+
+	return 0;
 }

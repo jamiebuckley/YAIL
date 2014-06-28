@@ -36,4 +36,9 @@ int list_remove(dlinklist* list, void* data, nodeOp removeFunc);
 int list_remove_comparator(dlinklist* list, void* data, nodeOp removeFunc, nodeCompareOp comparator, void* comparison);
 int list_remove_node(dlinklist* list, node* thisNode, nodeOp removeFunc);
 
+int prepend_all(dlinklist* list, dlinklist* addList);
+int append_all(dlinklist* list, dlinklist* addList);
+
+int list_delete(dlinklist* list);
+
 #endif

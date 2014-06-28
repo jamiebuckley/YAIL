@@ -22,6 +22,7 @@
 
 
 HashMap* symbolTable;
+int nextAddress = 0;
 
 int verbose=0;
 
@@ -45,14 +46,7 @@ int main(int argc, char** argv)
 
 	dlinklist* AST;
 	AST = parse(argv[1]);
-
 	processAST(AST);
-
-	FILE* f = fopen("output", "w");
-	if(f==NULL)
-	{
-		printf("Error opening output file\n");
-	}
 
 	if(verbose)
 	{
@@ -75,9 +69,27 @@ int main(int argc, char** argv)
 	if(verbose)
 		printf("ILC OUTPUT\n");
 
+	char* outputFileName = getNameWithoutExtension(argv[1]);
+	if(outputFileName == NULL)
+	{
+		printf("Error generating output file name\n");
+	}
+
+	FILE* f = fopen(strcat(outputFileName, ".yavm"), "w");
+	//free(outputFileName);
+
+	if(f==NULL)
+	{
+		printf("Error opening output file\n");
+	}
+	else
+	{
+		if(verbose)
+			printf("Opened file for writing\n");
+	}
+
 	makeILC(AST, f);
 
-	printf("\n");
 
 
 }
@@ -93,11 +105,12 @@ int printSymbolTable(HashMap* symbolTable)
 	{
 		HashMapEntry* hme = hashMap_get(symbolTable, (char*)(keyNode->data));	
 		SymTabEntry* ste = hme->data;
-		printf("Variable: %s	Type: %d\n", ste->name, ste->type);
+		printf("Variable: %s	Type: %d    Address: %d\n", ste->name, ste->type, ste->address);
 
 		keyNode=keyNode->next;
 	}
 	printf("\n");
+	return 0;
 }
 
 int processAST(dlinklist* AST)
@@ -110,6 +123,7 @@ int processAST(dlinklist* AST)
 		makeSymTab(currentNode);
 		thisNode = thisNode->next;
 	}
+	return 0;
 }
 
 int makeSymTab(BinaryTreeNode* AST)
@@ -145,10 +159,13 @@ int makeSymTab(BinaryTreeNode* AST)
 			entry->type=getType(valNode);
 			entry->name=varData->value;
 			entry->ASTRef=AST;
+			entry->address=nextAddress;
+			nextAddress+=4;
 
 			hashMap_put(symbolTable, varData->value, entry);
 		}
 	}	
+	return 0;
 }
 
 int getType(BinaryTreeNode* treeNode)
@@ -203,4 +220,20 @@ int getOpType(BinaryTreeNode* treeNode)
 	//Will need to convert a value to a higher order value (i.e. int to float)
 	printf("Mismatch between values\n");
 	return 0;
+}
+
+char* getNameWithoutExtension(char* filename)
+{
+	char* result;
+	if((result = malloc(strlen(filename)+1))==NULL)
+		return NULL;
+
+	strcpy(result, filename);
+
+	char* dot = strrchr(result, '.');
+
+	if(dot!=NULL)
+		*dot='\0';
+
+	return result;
 }

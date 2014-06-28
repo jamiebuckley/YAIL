@@ -20,6 +20,7 @@ int printStuff(void* data)
 {
 	lexeme* c = (lexeme*)data;
 	printf("%s\n", c->value);
+	return 0;
 }
 
 

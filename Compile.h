@@ -21,6 +21,7 @@ typedef struct SymTabEntry
 	int type;
 	char* name;	
 	BinaryTreeNode* ASTRef;
+	int address;
 } SymTabEntry;
 
 int processAST(dlinklist* AST);
@@ -28,5 +29,6 @@ int makeSymTab(BinaryTreeNode* AST);
 int getType(BinaryTreeNode* treeNode);
 int getOpType(BinaryTreeNode* treeNode);
 int printSymbolTable(HashMap* symbolTable);
+char* getNameWithoutExtension(char* filename);
 
 #endif

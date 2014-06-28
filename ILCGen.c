@@ -20,190 +20,254 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ILCGen.h"
+#include "HashMap.h"
+#include "Compile.h"
 
-int lastNum = 0;
+int lineNum = 0;
+int nextRegNum = 0;
 extern int verbose;
 
 dlinklist* ILCList;
 
-int makeILC(dlinklist* AST, FILE* f)
-{
-	ILCList = newlist();	
+extern HashMap* symbolTable;
 
+char* cNames[] = {"LOAD", "STORE", "ADD", "SUB", "MUL", "DIV", "COMPEQ", "COMPGT", "JUMP", "JUMPIF", "JUMPNIF", "END"};
+
+int makeILC(dlinklist* AST, FILE* f)
+{	
+	ILCList = newlist();	
 	node* current = AST->start;
 
 	while(current != NULL)
 	{
-		outputNode(current->data, f);	
+		ILCLine* thisLine = outputNode(current->data);	
 		current=current->next;
 	}
+
+	ILCLine* endLine = malloc(sizeof(ILCLine));
+	endLine->operation=END;
+	endLine->var1 = -1;
+	endLine->var2 = -1;
+	endLine->lnum = nextLine();
+
+	append(ILCList, endLine);
+
+	node* currentLine = ILCList->start;
+	while(currentLine != NULL)
+	{
+		ILCLine* thisLine = currentLine->data;
+		fprintf(f, "%d %d %d\n", thisLine->operation, thisLine->var1, thisLine->var2);	
+		if(verbose)
+		printf("#%d: %s %d %d\n",thisLine->lnum, cNames[thisLine->operation], thisLine->var1, thisLine->var2);	
+		currentLine = currentLine->next;
+	}
+	return 0;
 }
 
-int outputNode(BinaryTreeNode* thisNode, dlinklist* list, FILE* f)
+ILCLine* outputNode(BinaryTreeNode* thisNode)
 {
 	BinaryTreeNode* left = thisNode->left;
 	BinaryTreeNode* right = thisNode->right;
 
 	ASTNode* thisData = thisNode->data;
 	int type = thisData->type;
+
+	ILCLine* current;
 
 	switch(type)
 	{
-		case EQ:
-				break;
-		case PLUS:
-		case MINUS:
-		case TIMES:
-		case DIV:
+		case NUM:
+				current = handleNum(thisNode);
 				break;
 		case VAR:
+				current = handleVar(thisNode);
 				break;
-		case NUM:
+		case EQ:
+				current = handleAssign(thisNode);
+				break;
+		case PLUS:
+				current = handleOp(thisNode, CADD);
+				break;
+		case MINUS:
+				current = handleOp(thisNode, CSUB);
+				break;
+		case TIMES:
+				current = handleOp(thisNode, CMUL);
+				break;
+		case DIV:
+				current = handleOp(thisNode, CDIV);
 				break;
 		case IF:
+				current = handleIf(thisNode);
 				break;
 		case WHI:
+				current = handleWhile(thisNode);
+				break;
+		case GT:
+				current = handleGreater(thisNode);
+				break;
+		case LT:
+				current = handleLess(thisNode);
 				break;
 	}
+
+	return current;
 }
 
-int handleWhile(BinaryTreeNode* thisNode)
+ILCLine* handleNum(BinaryTreeNode* thisNode)
 {
-	//get the comparison statement
-	//get the middle statements
-	//prepend a conditional jump to the end based on the comparison statement
-	
-	dlinklist* statementList = thisNode->right->data; 
-	node* n = statementList->start;
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CLOAD;
+	thisLine->var1 = nextReg();
+	thisLine->var2 = atoi(((ASTNode*)(thisNode->data))->value);
 
-	int lastCommand = -1;
-	while(n != NULL)
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
+}
+
+ILCLine* handleVar(BinaryTreeNode* thisNode)
+{	
+	char* varName = (((ASTNode*)thisNode->data)->value);
+
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CLOAD;
+	thisLine->var1 = nextReg();
+	SymTabEntry* varEntry = hashMap_get(symbolTable, varName)->data;
+	thisLine->var2 = varEntry->address;
+
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
+}
+
+ILCLine* handleAssign(BinaryTreeNode* thisNode)
+{	
+	char* varName = (((ASTNode*)thisNode->left->data)->value);
+
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CSTORE;
+
+	SymTabEntry* varEntry = hashMap_get(symbolTable, varName)->data;
+	thisLine->var1 = varEntry->address;
+	thisLine->var2 = outputNode(thisNode->right)->var1;
+
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
+}
+
+ILCLine* handleOp(BinaryTreeNode* thisNode, int opType)
+{
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation = opType;
+	thisLine->var1 = outputNode(thisNode->left)->var1;
+	thisLine->var2 = outputNode(thisNode->right)->var1;	
+
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
+}
+
+ILCLine* handleIf(BinaryTreeNode* thisNode)
+{
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CJUMPIF;
+	outputNode(thisNode->left);
+	thisLine->var1=-1;
+
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+
+	dlinklist* statements = ((BinaryTreeNode*)(thisNode->right))->data;
+	node* current = statements->start;
+
+	int lastLine = -1;
+	while(current != NULL)
 	{
-		lastCommand = outputNode(n->data);
-		n=n->next;
+		ILCLine* newLine = outputNode(current->data);
+		current = current->next;
+		lastLine=lineNum;
 	}
 
+	thisLine->var1=lastLine;
+
+	return thisLine;
 }
 
-int outputNodeTwo(BinaryTreeNode* thisNode, FILE* f)
+ILCLine* handleWhile(BinaryTreeNode* thisNode)
 {
-	BinaryTreeNode* left = thisNode->left;
-	BinaryTreeNode* right = thisNode->right;
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CJUMPIF;
+	outputNode(thisNode->left);
+	thisLine->var1=-1;
+	thisLine->var2=-1;
 
-	ASTNode* thisData = thisNode->data;
-	int type = thisData->type;
-	
-	if(type==EQ)
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+
+	dlinklist* statements = ((BinaryTreeNode*)(thisNode->right))->data;
+	node* current = statements->start;
+
+	int beginningLine = lineNum;
+	while(current != NULL)
 	{
-		ASTNode* varNodeData = left->data;
-		char* varName = varNodeData->value;
-		int res = outputNode(thisNode->right, f);		
-		outputStoreVar(res, varName, f); 
-	}
-	else if(type==PLUS || type == MINUS || type == TIMES || type == DIV)
-	{
-		int l = outputNode(left, f); 
-		int r = outputNode(right, f);
-		return operand(thisData->textType, l, r, f);
-	}
-	else if(type==VAR)
-	{
-		return outputLoadVar(thisData->value, f);	
-	}
-	else if(type==NUM)
-	{
-		return outputLoadCon(thisData->value, f);
-	}	
-	else if(type==IF)
-	{	
-		dlinklist* stmtList = thisNode->right->data;
-		node* n = stmtList->start;
-
-		printf("IF\n");
-
-		while(n != NULL)
-		{
-			outputNode(n->data, f);
-			n=n->next;
-		}
-
-		printf("ENDIF\n");
-	}
-	else if(type==WHI)
-	{
-		dlinklist* stmtList = thisNode->right->data;
-		node* n = stmtList->start;
-
-		printf("WHILE\n");
-
-		while(n != NULL)
-		{
-			outputNode(n->data, f);
-			n=n->next;
-		}
-
-		printf("ENDWHILE\n");
-
+		ILCLine* newLine = outputNode(current->data);
+		current = current->next;
 	}
 
+	ILCLine* endLine = malloc(sizeof(ILCLine));
+	endLine->operation=CJUMPNIF;
+	outputNode(thisNode->left);
+	endLine->var1=beginningLine;
+	endLine->var2=-1;
+	endLine->lnum=nextLine();
+	append(ILCList, endLine);
+
+	thisLine->var1=lineNum;
+
+	return thisLine;
 }
 
-int outputLoadVar(char* varName, FILE* f)
+ILCLine* handleGreater(BinaryTreeNode* thisNode)
 {
-	int num = lastNum;
-	fprintf(f, "#%d LOAD @%s\n", num, varName);
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CCOMPGT;
+	thisLine->var1 = outputNode(thisNode->left)->var1;
+	thisLine->var2 = outputNode(thisNode->right)->var1;
 
-	if(verbose)	
-		printf("#%d LOAD @%s\n", num, varName);
-
-	lastNum++;
-	return num;
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
 }
 
-int outputLoadCon(char* val, FILE* f)
+ILCLine* handleLess(BinaryTreeNode* thisNode)
 {
-	int num = lastNum;
-	fprintf(f, "#%d LOAD %s\n", num, val);
-	
-	if(verbose)
-		printf("#%d LOAD %s\n", num, val);
+	ILCLine* thisLine = malloc(sizeof(ILCLine));
+	thisLine->operation=CCOMPGT;
+	thisLine->var2 = outputNode(thisNode->left)->var1;
+	thisLine->var1 = outputNode(thisNode->right)->var1;
 
-	lastNum++;
-	return num;
+	thisLine->lnum = nextLine();
+	append(ILCList, thisLine);
+	return thisLine;
 }
 
-int outputStoreVar(int inputNum, char* varName, FILE* f)
+ILCLine* handleEqual(BinaryTreeNode* thisNode)
 {
-	int num = lastNum;
-	fprintf(f, "#%d STORE %d @%s\n", num, inputNum, varName); 
-
-	if(verbose)
-		printf("#%d STORE %d @%s\n", num, inputNum, varName); 
-
-	lastNum++;
-	return num;
+	return NULL;
 }
 
-int outputOperand(char* type, int R1, int R2, FILE* f)
+int nextReg()
 {
-	int num = lastNum;
-	fprintf(f, "#%d %s %d %d\n", num, type, R1, R2);
-
-	if(verbose)
-	printf("#%d %s %d %d\n", num, type, R1, R2);
-
-	lastNum++;
-	return num;
+	int result = nextRegNum;
+	nextRegNum++;
+	return result;
 }
 
-int outputJump(char* type, int number, FILE* f)
+int nextLine()
 {
-	int num = lastNum;
-	fprintf(f, "#%d %s %d\n", num, type, number);
-
-	if(verbose)	
-		printf("#%d %s %d\n", num, type, number);
-
-   	lastNum++;   
-	return num;
+	int result = lineNum;
+	lineNum++;
+	return result;
 }
