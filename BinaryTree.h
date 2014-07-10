@@ -22,5 +22,4 @@ typedef void (*printFunction)(BinaryTreeNode*, int level);
 
 BinaryTreeNode* newBinaryTreeNode();
 void addBTNode(BinaryTreeNode* parent, BinaryTreeNode* child, int left);
-
 #endif

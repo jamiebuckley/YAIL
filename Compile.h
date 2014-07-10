@@ -22,6 +22,8 @@ typedef struct SymTabEntry
 	char* name;	
 	BinaryTreeNode* ASTRef;
 	int address;
+	int regaddress;
+	LIRNode* lastDefine;
 } SymTabEntry;
 
 int processAST(dlinklist* AST);

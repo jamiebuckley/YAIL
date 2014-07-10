@@ -8,6 +8,8 @@
 #ifndef LISTFILE
 #define LISTFILE
 
+#include <stdlib.h>
+
 typedef struct node
 {
     void* data;
@@ -38,6 +40,11 @@ int list_remove_node(dlinklist* list, node* thisNode, nodeOp removeFunc);
 int prepend_all(dlinklist* list, dlinklist* addList);
 int append_all(dlinklist* list, dlinklist* addList);
 
-int list_delete(dlinklist* list);
+typedef int (*deleteItemPtr)(void* item);
+int list_delete(dlinklist* list, deleteItemPtr deleteFunc);
+
+int list_contains(dlinklist* list, void* item, size_t size);
+
+void** listToArray(dlinklist* list);
 
 #endif

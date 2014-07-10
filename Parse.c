@@ -22,17 +22,10 @@ int tabindex = 0;
 
 void printXML(BinaryTreeNode* thisNode, int index)
 {
-	if(!thisNode)
+	if(!thisNode || !thisNode->data)
 	{
 		printf("thisNode = NULL\n");
 		return;
-	//	exitWithError("Cannot print null node", -1);
-	}
-	if(!thisNode->data)
-	{
-		printf("thisNode->data = NULL\n");
-		return;
-	//	exitWithError("Node has no data", -2);
 	}
 	ASTNode* thisData=thisNode->data;
 	if(thisData->type==WHI || thisData->type==IF)

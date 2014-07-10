@@ -35,7 +35,6 @@ typedef struct LIROperand
 #define CJUMPNIF 10
 #define END     11
 
-
 typedef struct LIRNode
 {
 	int linenum;

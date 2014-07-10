@@ -8,29 +8,6 @@
 #include <string.h>
 #include "HashMap.h"
 
-/*
-int main(int argc, char** argv)
-{
-	char* arrayofstrings[] = {"Hello", "this", "is", "a", "simple", "hash", "map"};
-	char* arrayofdata[] = {"Goodbye", "that", "isn't", "several", "complex", "perfect", "compass"};
-
-	HashMap* map = newHashMap(128);
-
-	for(int i = 0; i < 7; i++)
-	{
-		hashMap_put(map, arrayofstrings[i], arrayofdata[i]);	
-	}
-	char* val = (char*)hashMap_get(map, "Hello")->data;
-	printf("retrieved %s from hashmap\n", val);
-
-	int num = hashMap_remove(map, "Hello", NULL);
-	void* data = hashMap_get(map, "Hello");
-	if(data == NULL)
-	{
-		printf("Success!\n");
-	}
-}
-*/
 
 HashMap* newHashMap(int size)
 {

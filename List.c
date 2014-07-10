@@ -5,31 +5,8 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "List.h"
-
-/* Test Main Function
-int main(int argc, char** argv)
-{
-    dlinklist* list = newlist();
-
-    int* num = malloc(sizeof(int));
-    int* num2 = malloc(sizeof(int));
-
-    *num = 5;
-    *num2 = 10;
-
-    append(list, num);
-    append(list, num2);
-
-    node* current = list->start;
-    while(current!=NULL)
-    {
-	printf("%d\n", *(current->thisnode));
-	current=current->next;
-    }
-}
-*/
+#include <string.h>
 
 dlinklist* newlist()
 {
@@ -231,12 +208,13 @@ int append_all(dlinklist* list, dlinklist* addList)
 	return 0;
 }
 
-int list_delete(dlinklist* list)
+int list_delete(dlinklist* list, deleteItemPtr deleteFunc)
 {
 	node* current = list->start;
 
 	while(current != NULL)
 	{
+		deleteFunc(current->data);
 		free(current->data);
 		node* old = current;
 		current=current->next;
@@ -244,4 +222,30 @@ int list_delete(dlinklist* list)
 	}
 
 	return 0;
+}
+
+int list_contains(dlinklist* list, void* item, size_t size)
+{
+	node* current = list->start;
+	while(current != NULL)
+	{
+		if(!memcmp(current->data, item, size))
+			return 1;
+		current=current->next;
+	}
+	return 0;
+}
+
+void** listToArray(dlinklist* list)
+{
+	void** result = malloc(sizeof(void*) * list->size);		
+	node* current = list->start;
+	int i = 0;
+	while(current != NULL)
+	{
+		result[i] = current->data;
+		i++;
+		current = current->next;
+	}
+	return result;
 }

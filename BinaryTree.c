@@ -8,33 +8,6 @@
 #include <stdlib.h>
 #include "BinaryTree.h"
 
-/*
- * Testing Functions
-void testPrintFunction(BinaryTreeNode* thisNode)
-{
-	if(thisNode->isLeaf)
-	{
-		printf("%s\n", (char*)thisNode->data);
-	}
-}
-
-int main(int argc, char** argv)
-{
-	BinaryTreeNode* tree = newBinaryTreeNode();
-	BinaryTreeNode* leftChild = newBinaryTreeNode();
-	leftChild->data = "Left";
-
-	BinaryTreeNode* rightChild = newBinaryTreeNode();
-	rightChild->data = "Right";
-
-	addBTNode(tree, leftChild, 1);
-	addBTNode(tree, rightChild, 0);
-
-	printTree(tree, &testPrintFunction);
-}
-*/
-
-
 BinaryTreeNode* newBinaryTreeNode()
 {
 	BinaryTreeNode* newBTNode = malloc(sizeof(BinaryTreeNode));

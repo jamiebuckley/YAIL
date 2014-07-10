@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Compile.h"
+#include "LiveAnalyse.h"
 #include <string.h>
 
 
@@ -58,7 +59,8 @@ int main(int argc, char** argv)
 	}	
 
 	dlinklist* LIR = createLinearIR(symbolTable, AST);
-
+	
+    LivenessList* liveness = LiveAnalyse(LIR);
 	/*
 	char* outputFileName = getNameWithoutExtension(argv[1]);
 	if(outputFileName == NULL)
@@ -128,7 +130,6 @@ int makeSymTab(BinaryTreeNode* AST)
 {
 	ASTNode* currentData = AST->data;
 
-
 	if(currentData->type==WHI || currentData->type == IF)
 	{
 		processAST(AST->right->data);
@@ -153,6 +154,7 @@ int makeSymTab(BinaryTreeNode* AST)
 			entry->name=varData->value;
 			entry->ASTRef=AST;
 			entry->address=nextAddress;
+			entry->regaddress=-1;
 			nextAddress+=4;
 
 			hashMap_put(symbolTable, varData->value, entry);
