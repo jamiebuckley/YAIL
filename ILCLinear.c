@@ -4,18 +4,6 @@
  * An operand can either be a memory address, a temporary variable or NULL
 */
 
-
-/*
- * Needs to be modified to remove the pattern
- * LOAD R0 5
- * Store MEM0 R0
- * Load R1 MEM0
- *
- * This could be avoided by a symbol keeping track of where it is.
- * The store is only needed 
- *
-*/
-
 #include "ILCLinear.h"
 #include "Compile.h"
 
@@ -23,14 +11,12 @@
 #include <stdlib.h>
 
 extern int verbose;
-HashMap* symbolTable;
 
+HashMap* symbolTable;
 dlinklist* IRList;
 
 int temp = 0;
 int linenum = 0;
-
-
 
 char* opWords[] = {"MEM", "TEMP", "CONSTANT", "LINE"};
 char* commandWords[] = {"LOAD", "STORE", "ADD", "SUB", "MUL", "DIV", "COMPEQ", "COMPGT", "JUMP", "JUMPIF", "JUMPNIF", "END"};
@@ -43,16 +29,19 @@ dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST)
 	IRList = newlist();
 	node* current = AST->start;
 
+	/* Process the root node of each AST statement */
 	while(current != NULL)
 	{
-		IRCurrentNode(current->data);
+		ProcessCurrentNode(current->data);
 		current = current->next;
 	}
 
+	/* Append the END node to the list */
 	LIRNode* endNode=newLIRNode(END, NULL, NULL);
 	endNode->linenum=nextLine();
 	append(IRList, endNode);
 
+	/* If verbose, print the list */
 	if(verbose)
 	{
 		node* currentIR = IRList->start;
@@ -71,7 +60,7 @@ dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST)
 	return IRList;
 }
 
-LIRNode* IRCurrentNode(BinaryTreeNode* statementNode)
+LIROperand* ProcessCurrentNode(BinaryTreeNode* statementNode)
 {
 	BinaryTreeNode* left = statementNode->left;
 	BinaryTreeNode* right = statementNode->right;
@@ -108,29 +97,37 @@ LIRNode* IRCurrentNode(BinaryTreeNode* statementNode)
 }
 
 /* Handles the storing of values to memory */
-LIRNode* handleAssign(BinaryTreeNode* assignNode)
+/* CSTORE MEM REGISTER/CONSTANT */
+LIROperand* handleAssign(BinaryTreeNode* assignNode)
 {
+	/* Get variable info */
 	ASTNode* leftNode = assignNode->left->data;
-	char* varName = leftNode->value;
-	
-	SymTabEntry* varEntry = hashMap_get(symbolTable, varName)->data;
+	SymTabEntry* varEntry = hashMap_get(symbolTable, leftNode->value)->data;
 	int varAddress = varEntry->address;
 
-	LIROperand* op1 = newLIROperand(MEMADD, varAddress);	
-	LIRNode* rightNode = IRCurrentNode(assignNode->right);
+	LIROperand* leftOperand = newLIROperand(MEMADD, varAddress);	
+	LIROperand* rightOperand = ProcessCurrentNode(assignNode->right);
 
-	LIRNode* result = newLIRNode(CSTORE, op1, rightNode->operand1);
+	LIRNode* result = newLIRNode(CSTORE, leftOperand, rightOperand);
 	result->linenum = nextLine();
 
-	varEntry->regaddress=rightNode->operand1->value;
-	varEntry->lastDefine = rightNode;
+	varEntry->regaddress=rightOperand->value;
 
 	append(IRList, result);
-	return result;
+	return leftOperand;
 }
 
-/* Loads constant values into a register */
-LIRNode* handleNum(BinaryTreeNode* thisNode)
+/* Returns a constant value */
+LIROperand* handleNum(BinaryTreeNode* thisNode)
+{
+	ASTNode* thisData = thisNode->data;
+	int value = atoi(thisData->value);
+
+	LIROperand* op1 = newLIROperand(CONSTANT, value);
+	return op1;
+}
+
+LIROperand* loadNum(BinaryTreeNode* thisNode)
 {
 	ASTNode* thisData = thisNode->data;
 
@@ -144,11 +141,11 @@ LIRNode* handleNum(BinaryTreeNode* thisNode)
 	result->linenum = nextLine();
 
 	append(IRList, result);
-	return result;
+	return op1;
 }
 
 /* Handles references to a variable */
-LIRNode* handleVar(BinaryTreeNode* thisNode)
+LIROperand* handleVar(BinaryTreeNode* thisNode)
 {
 	char* varName = ((ASTNode*)thisNode->data)->value;	
 	HashMapEntry* hashEntry = hashMap_get(symbolTable, varName);
@@ -157,85 +154,68 @@ LIRNode* handleVar(BinaryTreeNode* thisNode)
 		printf("Error: %s has not been initialized\n", varName);
 
 	SymTabEntry* varEntry = hashEntry->data;
-
-	if(varEntry->regaddress >= 0)
-	{
-		return varEntry->lastDefine;
-	}
-	//If the variable is not in memory, load it from memory
 	int varAddress = varEntry->address;
 	int tempNum = nextTemp();
 
-	LIROperand* op1 = newLIROperand(TEMP, tempNum);
-	LIROperand* op2 = newLIROperand(MEMADD, varAddress); 
+	LIROperand* leftOperand = newLIROperand(TEMP, tempNum);
+	LIROperand* rightOperand = newLIROperand(MEMADD, varAddress); 
 
-	LIRNode* result = newLIRNode(CLOAD, op1, op2);
+	LIRNode* result = newLIRNode(CLOAD, leftOperand, rightOperand);
 	result->linenum = nextLine();
 	append(IRList, result);
-
-	//If the variable is already in memory, return the 
-	return result;
+	return leftOperand;
 }
 
 /* Handles any arithmetic operation */
-LIRNode* handleOperation(int optype, BinaryTreeNode* thisNode)
+LIROperand* handleOperation(int optype, BinaryTreeNode* thisNode)
 {
-	LIRNode* leftNode = IRCurrentNode(thisNode->left);
-	LIRNode* rightNode = IRCurrentNode(thisNode->right);
+	/* If one or both nodes are temporaries, do the following */
+	ASTNode* leftData,* rightData;
 
-	LIRNode* result = newLIRNode(optype, leftNode->operand1, rightNode->operand1);
+	leftData = thisNode->left->data;
+	rightData = thisNode->right->data;
+
+	printf("OPS %d: %d %d\n", optype, leftData->type, rightData->type);
+	int lNC = (leftData->type == NUM);
+	int rNC = (rightData->type == NUM);
+
+	printf("%d %d\n", lNC, rNC);
+	LIROperand* leftOperand, *rightOperand;
+	if(lNC)
+		leftOperand = loadNum(thisNode->left);
+	else
+		leftOperand = ProcessCurrentNode(thisNode->left);
+
+	rightOperand = ProcessCurrentNode(thisNode->right);
+	/* if both are constants, load one of them into a temporary, and that is the left operand */
+
+	LIRNode* result = newLIRNode(optype, leftOperand, rightOperand);
 	result->linenum = nextLine();
 	append(IRList, result);
-	return result;
+	return leftOperand;
 }
 
 /* Handles comparisons */
-LIRNode* handleComp(int greater, BinaryTreeNode* thisNode)
+LIROperand* handleComp(int greater, BinaryTreeNode* thisNode)
 {
-	LIRNode* leftNode = IRCurrentNode(thisNode->left);
-	LIRNode* rightNode = IRCurrentNode(thisNode->right);
+	LIROperand* leftOperand = ProcessCurrentNode(thisNode->left);
+	LIROperand* rightOperand = ProcessCurrentNode(thisNode->right);
 
 	LIRNode* result;
-
 	if(greater)
-		result = newLIRNode(CCOMPGT, leftNode->operand1, rightNode->operand1); 
+		result = newLIRNode(CCOMPGT, leftOperand, rightOperand); 
 	else
-		result = newLIRNode(CCOMPGT, rightNode->operand1, leftNode->operand1);
+		result = newLIRNode(CCOMPGT, rightOperand, leftOperand);
 
 	result->linenum = nextLine();
 	append(IRList, result);
-	return result;
+	return result->operand1;
 }
 
 /* Handles if statements, and the contained statements */
-LIRNode* handleIf(BinaryTreeNode* thisNode)
+LIROperand* handleIf(BinaryTreeNode* thisNode)
 {
-	LIRNode* comparison = IRCurrentNode(thisNode->left);
-	LIRNode* jumpIf=newLIRNode(CJUMPIF, NULL, NULL);
-	append(IRList, jumpIf);
-
-	dlinklist* statements = thisNode->right->data;
-	node* current = statements->start;	
-
-	LIRNode* lastNode;
-	while(current != NULL)
-	{
-		lastNode = IRCurrentNode(current->data);
-		current = current->next;
-	}
-
-	LIROperand* op1 = newLIROperand(LINE, lastNode->linenum+1);
-
-	jumpIf->operand1=op1;
-
-	return lastNode;
-}
-
-/* Handles while statements, and the contained statements */
-LIRNode* handleWhile(BinaryTreeNode* thisNode)
-{
-	LIRNode* comparison = IRCurrentNode(thisNode->left);
-		
+	LIROperand* comparison = ProcessCurrentNode(thisNode->left);
 	LIRNode* jumpIf=newLIRNode(CJUMPIF, NULL, NULL);
 	jumpIf->linenum=nextLine();
 	append(IRList, jumpIf);
@@ -243,21 +223,42 @@ LIRNode* handleWhile(BinaryTreeNode* thisNode)
 	dlinklist* statements = thisNode->right->data;
 	node* current = statements->start;	
 
-	LIRNode* lastNode;
 	while(current != NULL)
 	{
-		lastNode = IRCurrentNode(current->data);
+		ProcessCurrentNode(current->data);
 		current = current->next;
 	}
 
-	LIROperand* op1 = newLIROperand(LINE, lastNode->linenum+2);
-	jumpIf->operand1=op1;
+	LIROperand* lineOperand = newLIROperand(LINE, linenum);
+	jumpIf->operand1=lineOperand;
+	return lineOperand;
+}
 
-	LIROperand* jumpOp1 = newLIROperand(LINE, comparison->linenum);
+/* Handles while statements, and the contained statements */
+LIROperand* handleWhile(BinaryTreeNode* thisNode)
+{
+	LIROperand* comparison = ProcessCurrentNode(thisNode->left);	
+	LIRNode* jumpIf=newLIRNode(CJUMPIF, NULL, NULL);
+	int startLine = jumpIf->linenum = nextLine();
+	append(IRList, jumpIf);
+
+	dlinklist* statements = thisNode->right->data;
+	node* current = statements->start;	
+
+	while(current != NULL)
+	{
+		ProcessCurrentNode(current->data);
+		current = current->next;
+	}
+
+	LIROperand* lineOperand = newLIROperand(LINE, linenum+2);
+	jumpIf->operand1=lineOperand;
+
+	LIROperand* jumpOp1 = newLIROperand(LINE, startLine-1);
 	LIRNode* jump = newLIRNode(CJUMP, jumpOp1, NULL);
 	jump->linenum=nextLine();
 	append(IRList, jump);
-	return jump;
+	return jumpOp1;
 }
 
 /* Gives the next temporary value available */

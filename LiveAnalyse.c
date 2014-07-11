@@ -111,13 +111,14 @@ void addOpsGEN(int i, LIRNode* l)
 {
 	int* a = malloc(sizeof(int));
 	int* b = malloc(sizeof(int));
-	if(l->operand1 != NULL)
+
+	if(l->operand1 != NULL && l->operand1->type==TEMP)
 	{
 		*a = l->operand1->value;
 		append(GEN[i], a);
 		append(KILL[i], a);
 	}
-	if(l->operand2 != NULL)
+	if(l->operand2 != NULL && l->operand2->type==TEMP)
 	{
 		*b = l->operand2->value;
 		append(GEN[i], b);

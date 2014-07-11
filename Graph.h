@@ -9,5 +9,6 @@
 
 typedef struct GraphNode
 {
+	void* data;
 	dlinklist* edges;
 } GraphNode;

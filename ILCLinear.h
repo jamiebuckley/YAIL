@@ -44,15 +44,16 @@ typedef struct LIRNode
 } LIRNode;
 
 dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST);
-LIRNode* IRCurrentNode(BinaryTreeNode* statementNode);
+LIROperand* ProcessCurrentNode(BinaryTreeNode* statementNode);
 
-LIRNode* handleAssign(BinaryTreeNode* assignNode);
-LIRNode* handleNum(BinaryTreeNode* thisNode);
-LIRNode* handleVar(BinaryTreeNode* thisNode);
-LIRNode* handleOperation(int optype, BinaryTreeNode* thisNode);
-LIRNode* handleComp(int greater, BinaryTreeNode* thisNode);
-LIRNode* handleIf(BinaryTreeNode* thisNode);
-LIRNode* handleWhile(BinaryTreeNode* thisNode);
+LIROperand* handleAssign(BinaryTreeNode* assignNode);
+LIROperand* handleNum(BinaryTreeNode* thisNode);
+LIROperand* loadNum(BinaryTreeNode* thisNode);
+LIROperand* handleVar(BinaryTreeNode* thisNode);
+LIROperand* handleOperation(int optype, BinaryTreeNode* thisNode);
+LIROperand* handleComp(int greater, BinaryTreeNode* thisNode);
+LIROperand* handleIf(BinaryTreeNode* thisNode);
+LIROperand* handleWhile(BinaryTreeNode* thisNode);
 int nextTemp();
 int nextLine();
 
