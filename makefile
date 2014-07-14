@@ -1,4 +1,4 @@
-OBJS = List.o BinaryTree.o Lex.o Parse.o HashMap.o Compile.o ILCLinear.o LiveAnalyse.o Set.o Graph.o
+OBJS = List.o BinaryTree.o Lex.o Parse.o HashMap.o Compile.o ILCLinear.o LiveAnalyse.o Set.o Graph.o Colouring.o
 FLAGS = -std='c99'
 BIN = Bin/
 

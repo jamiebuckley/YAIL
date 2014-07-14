@@ -17,9 +17,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "Compile.h"
 #include "LiveAnalyse.h"
-#include <string.h>
+#include "Colouring.h"
 
 
 HashMap* symbolTable;
@@ -58,9 +60,36 @@ int main(int argc, char** argv)
 		printSymbolTable(symbolTable);
 	}	
 
-	dlinklist* LIR = createLinearIR(symbolTable, AST);
-	
-    LivenessList* liveness = LiveAnalyse(LIR);
+	LIR* lir = createLinearIR(symbolTable, AST);	
+    LivenessList* liveness = LiveAnalyse(lir);
+	ColourInfo* colourInfo = Colour(liveness, 8);
+
+	if (colourInfo == NULL)
+	{
+		printf("Spill\n");
+	}
+
+	node* current = lir->IRList->start;
+	while(current != NULL)
+	{
+		LIRNode* lirNode = current->data;	
+		LIROperand* op1 = lirNode->operand1;
+		LIROperand* op2 = lirNode->operand2;
+		
+		if(op1 != NULL && op1->type == TEMP)
+		{
+			op1->type = REGISTER;
+			op1->value = colourInfo->tempColours[op1->value];
+		}
+		if(op2 != NULL && op2->type == TEMP)
+		{
+			op2->type = REGISTER;
+			op2->value = colourInfo->tempColours[op2->value];
+		}
+		current = current->next;
+	}
+	printLIR(lir->IRList);
+
 	/*
 	char* outputFileName = getNameWithoutExtension(argv[1]);
 	if(outputFileName == NULL)

@@ -15,6 +15,8 @@
 #define TEMP     1
 #define CONSTANT 2
 #define LINE	 3
+#define REGISTER 4
+#define STACK	 5
 typedef struct LIROperand
 {
 	int type;
@@ -35,6 +37,12 @@ typedef struct LIROperand
 #define CJUMPNIF 10
 #define END     11
 
+typedef struct LIR
+{
+	dlinklist* IRList;
+	int numTemporaries;
+} LIR;
+
 typedef struct LIRNode
 {
 	int linenum;
@@ -43,7 +51,8 @@ typedef struct LIRNode
 	LIROperand* operand2;
 } LIRNode;
 
-dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST);
+int printLIR(dlinklist* IRList);
+LIR* createLinearIR(HashMap* symTable, dlinklist* AST);
 LIROperand* ProcessCurrentNode(BinaryTreeNode* statementNode);
 
 LIROperand* handleAssign(BinaryTreeNode* assignNode);

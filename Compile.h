@@ -9,7 +9,6 @@
 #include "Parse.h"
 
 #include "HashMap.h"
-
 #include "ILCLinear.h"
 
 #define INTEGER 1

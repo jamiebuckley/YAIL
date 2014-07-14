@@ -108,6 +108,18 @@ int foreach(dlinklist* list, nodeOp callback)
 	return 0;
 }
 
+int list_clear(dlinklist* list)
+{
+	node* current = list->start;
+
+	while(current != NULL)
+	{
+		node* next = current->next;	
+		free(current);
+		current = next;
+	}
+}
+
 int list_remove(dlinklist* list, void* data, nodeOp removeFunc)
 {
 	node* thisNode;	
@@ -169,17 +181,55 @@ int list_remove_comparator(dlinklist* list, void* data, nodeOp removeFunc, nodeC
 	return -1;
 }
 
+
+int list_delete(dlinklist* list, void* data, size_t size)
+{
+	node* current = list->start;
+	while(current != NULL)
+	{
+		node* next = current->next;
+
+		if(!memcmp(data, current->data, size))
+		{
+			list_remove_node(list, current, NULL);
+		}
+		current = next;
+	}	
+}
+
 int list_remove_node(dlinklist* list, node* node, nodeOp removeFunc)
 {
 	list->size--;
-
 	if(node->prev != NULL) node->prev->next = node->next;
+	else list->start = node->next;
 	if(node->next != NULL) node->next->prev = node->prev;
+	else list->end = node->prev;
 
 	if(removeFunc != NULL) removeFunc(node->data);
 	free(node);
 
 	return 0;
+}
+
+void* elementAt(dlinklist* list, int index)
+{
+	if(index >= list->size)
+		return NULL;
+
+	int i = 0;
+
+	node* current = list->start;
+
+	while(current != NULL)
+	{
+		if(index == i)
+			return current->data;	
+
+		current = current->next;
+		i++;
+	}
+
+	return NULL;
 }
 
 int prepend_all(dlinklist* list, dlinklist* addList)
@@ -207,23 +257,7 @@ int append_all(dlinklist* list, dlinklist* addList)
 
 	return 0;
 }
-
-int list_delete(dlinklist* list, deleteItemPtr deleteFunc)
-{
-	node* current = list->start;
-
-	while(current != NULL)
-	{
-		deleteFunc(current->data);
-		free(current->data);
-		node* old = current;
-		current=current->next;
-		free(old);
-	}
-
-	return 0;
-}
-
+	
 int list_contains(dlinklist* list, void* item, size_t size)
 {
 	node* current = list->start;

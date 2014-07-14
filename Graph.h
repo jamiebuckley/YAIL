@@ -12,3 +12,10 @@ typedef struct GraphNode
 	void* data;
 	dlinklist* edges;
 } GraphNode;
+
+GraphNode* newGraphNode();
+int graph_connect(GraphNode* A, GraphNode* B);
+int graph_disconnect(GraphNode* A, GraphNode* B);
+int removeGraphNode(dlinklist* graph, GraphNode* thisNode);
+int popGraphNode(dlinklist* graph, GraphNode* thisNode);
+int pushGraphNode(dlinklist* graph, GraphNode* thisNode);

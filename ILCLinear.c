@@ -18,12 +18,30 @@ dlinklist* IRList;
 int temp = 0;
 int linenum = 0;
 
-char* opWords[] = {"MEM", "TEMP", "CONSTANT", "LINE"};
+char* opWords[] = {"MEM", "TEMP", "CONSTANT", "LINE", "REGISTER", "STACK"};
 char* commandWords[] = {"LOAD", "STORE", "ADD", "SUB", "MUL", "DIV", "COMPEQ", "COMPGT", "JUMP", "JUMPIF", "JUMPNIF", "END"};
 
-dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST)
+
+int printLIR(dlinklist* IRList)
 {
-	printf("Creating linear IR \n");
+	printf("LINEAR IR: \n");
+	node* currentIR = IRList->start;
+	while(currentIR != NULL)
+	{
+		LIRNode* x = currentIR->data;
+		printf("%d: ", x->linenum);
+		printf("%s ", commandWords[x->type]);
+		if(x->operand1 != NULL) printf("%s:%d ", opWords[x->operand1->type], x->operand1->value);
+		if(x->operand2 != NULL) printf("%s:%d", opWords[x->operand2->type], x->operand2->value);
+		printf("\n");
+		currentIR = currentIR->next;
+	}
+	printf("\n");
+	return 0;
+}
+
+LIR* createLinearIR(HashMap* symTable, dlinklist* AST)
+{
 	symbolTable=symTable;
 
 	IRList = newlist();
@@ -44,20 +62,14 @@ dlinklist* createLinearIR(HashMap* symTable, dlinklist* AST)
 	/* If verbose, print the list */
 	if(verbose)
 	{
-		node* currentIR = IRList->start;
-		while(currentIR != NULL)
-		{
-			LIRNode* x = currentIR->data;
-			printf("%d: ", x->linenum);
-			printf("%s ", commandWords[x->type]);
-			if(x->operand1 != NULL) printf("%s:%d ", opWords[x->operand1->type], x->operand1->value);
-			if(x->operand2 != NULL) printf("%s:%d", opWords[x->operand2->type], x->operand2->value);
-			printf("\n");
-			currentIR = currentIR->next;
-		}
-		printf("\n");
+		printLIR(IRList);
 	}
-	return IRList;
+
+	LIR* lir = malloc(sizeof(LIR));
+	lir->IRList = IRList;
+	lir->numTemporaries = temp;
+
+	return lir;
 }
 
 LIROperand* ProcessCurrentNode(BinaryTreeNode* statementNode)
@@ -175,18 +187,17 @@ LIROperand* handleOperation(int optype, BinaryTreeNode* thisNode)
 	leftData = thisNode->left->data;
 	rightData = thisNode->right->data;
 
-	printf("OPS %d: %d %d\n", optype, leftData->type, rightData->type);
 	int lNC = (leftData->type == NUM);
 	int rNC = (rightData->type == NUM);
 
-	printf("%d %d\n", lNC, rNC);
 	LIROperand* leftOperand, *rightOperand;
+	rightOperand = ProcessCurrentNode(thisNode->right);
+
 	if(lNC)
 		leftOperand = loadNum(thisNode->left);
 	else
 		leftOperand = ProcessCurrentNode(thisNode->left);
 
-	rightOperand = ProcessCurrentNode(thisNode->right);
 	/* if both are constants, load one of them into a temporary, and that is the left operand */
 
 	LIRNode* result = newLIRNode(optype, leftOperand, rightOperand);

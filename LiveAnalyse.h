@@ -11,11 +11,14 @@
 
 typedef struct LivenessList
 {
-dlinklist** KILL;
-dlinklist** OUT;
+	int numTemporaries;
+	int numInstructions;
+	dlinklist** KILL;
+	dlinklist** OUT;
+	LIR* lir;
 } LivenessList;
 
-LivenessList* LiveAnalyse(dlinklist* ILCLinear);
+LivenessList* LiveAnalyse(LIR* lir);
 int processSUCC(int i, LIRNode* l);
 int processGEN(int i, LIRNode* l);
 int processKILL(int i, LIRNode* l);

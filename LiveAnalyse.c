@@ -25,6 +25,7 @@ int printNum(void* data)
 
 void printTables(int numInstructions)
 {
+	printf("LIVENESS TABLES:\n");
 	for(int i = 0; i < numInstructions; i++)
 	{
 		printf("#%d:\t", i);
@@ -39,10 +40,12 @@ void printTables(int numInstructions)
 		foreach(IN[i], &printNum);
 		printf("\n");
 	}	
+	printf("\n");
 }
 
-LivenessList* LiveAnalyse(dlinklist* ILCLinear)
+LivenessList* LiveAnalyse(LIR* lir)
 {	
+	dlinklist* ILCLinear = lir->IRList;
 	numInstructions = ILCLinear->size;
 
 	SUCC = malloc(numInstructions * sizeof(dlinklist));
@@ -81,8 +84,12 @@ LivenessList* LiveAnalyse(dlinklist* ILCLinear)
 	printTables(numInstructions);
 
 	LivenessList* result = malloc(sizeof(LivenessList));
+	result->numInstructions = numInstructions;
 	result->KILL = KILL;
 	result->OUT = OUT;
+	result->numTemporaries = lir->numTemporaries;
+	result->lir = lir;
+
 	return result;
 }
 
@@ -155,6 +162,9 @@ int processGEN(int i, LIRNode* l)
 int processKILL(int i, LIRNode* l)
 {
 	if(l->type != CSTORE)
+		return 0;
+
+	if(l->operand2->type != TEMP)
 		return 0;
 
 	int* a = malloc(sizeof(int));
