@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BinaryTree.h"
 #include "Compile.h"
 #include "LiveAnalyse.h"
 #include "Colouring.h"
@@ -88,19 +89,16 @@ int main(int argc, char** argv)
 		}
 		current = current->next;
 	}
-	printLIR(lir->IRList);
 
-	/*
 	char* outputFileName = getNameWithoutExtension(argv[1]);
 	if(outputFileName == NULL)
 		printf("Error generating output file name\n");
 
 	FILE* f = fopen(strcat(outputFileName, ".yavm"), "w");
-
 	if(f==NULL)	printf("Error opening output file\n");
+	else
+		printLIR(lir->IRList, f, 0);
 
-	makeILC(AST, f);
-	*/
 }
 
 int printAST(dlinklist* AST)
@@ -135,6 +133,82 @@ int printSymbolTable(HashMap* symbolTable)
 	return 0;
 }
 
+int doOp(int leftVal, int rightVal, int operation)
+{
+	switch(operation)
+	{
+		case PLUS:
+			return leftVal + rightVal;
+		case MINUS:
+			return leftVal - rightVal;
+		case TIMES:
+			return leftVal * rightVal;
+		case DIV:
+			return leftVal / rightVal;
+		case GT:
+			return leftVal > rightVal;
+		case LT:
+			return leftVal < rightVal;
+	}
+}
+
+//if a nodes hierarchy type is NUM, and it has left and right nodes, it can be collapsed
+//if a hierarchy type is not NUM, 
+int collapseNodes(BinaryTreeNode* thisNode)
+{
+	ASTNode* currentData = thisNode->data;
+	
+	if(thisNode->isLeaf)
+	{
+		if(currentData->type == NUM)
+			return 1;
+		else
+			return 0;	
+	}
+	else
+	{
+		BinaryTreeNode* leftNode = thisNode->left;
+		BinaryTreeNode* rightNode = thisNode->right;
+		ASTNode* leftData = leftNode->data;
+		ASTNode* rightData = rightNode->data;
+
+		if(leftData->type == NUM && rightData->type == NUM)
+		{
+			int val = atoi(leftData->value);
+			int val2 = atoi(rightData->value);
+			int result = doOp(val, val2, currentData->type);
+
+			deleteBTNode(thisNode->left, freeASTNode);
+			deleteBTNode(thisNode->right, freeASTNode);
+			thisNode->isLeaf = 1;
+
+			currentData->type = NUM;
+			free(currentData->value);
+
+			currentData->value = malloc(10*sizeof(char));
+			sprintf(currentData->value, "%d", result);
+			currentData->textType = "Number";
+			return 1;
+		}
+		else
+		{
+			int succ = 0;
+			succ += collapseNodes(leftNode);
+			succ += collapseNodes(rightNode);
+			
+			if(succ >= 2)
+			{
+				collapseNodes(leftNode);
+				collapseNodes(rightNode);
+			}
+
+			return succ;
+		}
+	}
+}
+
+
+
 int processAST(dlinklist* AST)
 {
 	node* thisNode = AST->start;
@@ -143,11 +217,11 @@ int processAST(dlinklist* AST)
 	{
 		BinaryTreeNode* currentNode=thisNode->data;
 		makeSymTab(currentNode);
+		collapseNodes(thisNode->data);
 		thisNode = thisNode->next;
 	}
 	return 0;
 }
-
 /*
  * Walk tree and look for all variable declarations
  * If currentnode isn't leaf (and isn't a while loop)
@@ -200,7 +274,6 @@ int getType(BinaryTreeNode* treeNode)
 		return currentData->hierarchyType;
 
 	int nodeType = getOpType(treeNode);
-
 	currentData->hierarchyType=nodeType;
 	return nodeType;
 }
@@ -221,17 +294,7 @@ int getOpType(BinaryTreeNode* treeNode)
 
 		else if(currentData->type==VAR)
 		{
-			HashMapEntry* varResult = hashMap_get(symbolTable, currentData->value);	
-
-			if(varResult==NULL)
-			{
-				//Error, found undefined value
-				printf("Error: %s is undefined\n", currentData->value);
-				return 0;
-			}
-
-			SymTabEntry* entry = varResult->data;
-			return entry->type;
+			return TVAR;
 		}
 	}
 
@@ -241,9 +304,10 @@ int getOpType(BinaryTreeNode* treeNode)
 	if (leftOpType==rightOpType)
 		return leftOpType;
 
-	//Will need to convert a value to a higher order value (i.e. int to float)
-	printf("Mismatch between values\n");
-	return 0;
+	if (leftOpType == TVAR || rightOpType == TVAR)
+		return TVAR;
+
+	return INTEGER;
 }
 
 char* getNameWithoutExtension(char* filename)

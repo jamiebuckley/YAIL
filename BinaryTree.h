@@ -22,4 +22,7 @@ typedef void (*printFunction)(BinaryTreeNode*, int level);
 
 BinaryTreeNode* newBinaryTreeNode();
 void addBTNode(BinaryTreeNode* parent, BinaryTreeNode* child, int left);
+
+typedef void (*deleteFunction)(void* data);
+void deleteBTNode(BinaryTreeNode* this, deleteFunction func);
 #endif

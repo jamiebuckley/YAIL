@@ -459,3 +459,13 @@ ASTNode* newASTNode(int type, char* textType, char* value)
 	newNode->hierarchyType=0;
 	return newNode;
 }
+
+void freeASTNode(void* this)
+{
+	ASTNode* a = this;
+	if(a->value != NULL)
+	{
+		free(a->value);
+		a->value = NULL;
+	}
+}

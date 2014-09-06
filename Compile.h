@@ -14,6 +14,7 @@
 #define INTEGER 1
 #define FLOAT	2
 #define STRING  3
+#define TVAR	4
 
 typedef struct SymTabEntry
 {

@@ -26,3 +26,20 @@ void addBTNode(BinaryTreeNode* parent, BinaryTreeNode* child, int left)
 
 	parent->isLeaf = 0;
 }
+
+void deleteBTNode(BinaryTreeNode* this, deleteFunction func)
+{
+	if(this->left != NULL)
+	{
+		deleteBTNode(this->left, func);
+		this->left = NULL;
+	}
+	if(this->right != NULL)
+	{
+		deleteBTNode(this->right, func);
+		this->right = NULL;
+	}
+
+	func(this->data);
+	free(this);
+}

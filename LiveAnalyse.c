@@ -169,7 +169,7 @@ int processKILL(int i, LIRNode* l)
 
 	int* a = malloc(sizeof(int));
 	*a = l->operand2->value;
-	append(GEN[i], a);
+	//append(GEN[i], a);
 	append(KILL[i], a);
 	return 0;
 }
@@ -226,7 +226,6 @@ int processIN(int i, LIRNode* l)
 	while(currentOut != NULL)
 	{
 		int* currentOutData = currentOut->data;
-
 		if(!list_contains(KILL[i], currentOutData, sizeof(int)) && !list_contains(IN[i], currentOutData, sizeof(int)))
 		{
 			append(IN[i], currentOutData);

@@ -7,8 +7,6 @@
 #include "ILCLinear.h"
 #include "Compile.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 
 extern int verbose;
 
@@ -22,18 +20,28 @@ char* opWords[] = {"MEM", "TEMP", "CONSTANT", "LINE", "REGISTER", "STACK"};
 char* commandWords[] = {"LOAD", "STORE", "ADD", "SUB", "MUL", "DIV", "COMPEQ", "COMPGT", "JUMP", "JUMPIF", "JUMPNIF", "END"};
 
 
-int printLIR(dlinklist* IRList)
+int printLIR(dlinklist* IRList, FILE* outputFile, int asWords)
 {
 	printf("LINEAR IR: \n");
 	node* currentIR = IRList->start;
 	while(currentIR != NULL)
 	{
 		LIRNode* x = currentIR->data;
-		printf("%d: ", x->linenum);
-		printf("%s ", commandWords[x->type]);
-		if(x->operand1 != NULL) printf("%s:%d ", opWords[x->operand1->type], x->operand1->value);
-		if(x->operand2 != NULL) printf("%s:%d", opWords[x->operand2->type], x->operand2->value);
-		printf("\n");
+		if(asWords > 0)
+		{
+			printf("%d: ", x->linenum);
+			printf("%s ", commandWords[x->type]);
+			if(x->operand1 != NULL) printf("%s:%d ", opWords[x->operand1->type], x->operand1->value);
+			if(x->operand2 != NULL) printf("%s:%d", opWords[x->operand2->type], x->operand2->value);
+			printf("\n");
+		}
+		else
+		{
+			fprintf(outputFile, "%d ", x->type);
+			if(x->operand1 != NULL) fprintf(outputFile, "%d %d ", x->operand1->type, x->operand1->value);
+			if(x->operand2 != NULL) fprintf(outputFile, "%d %d ", x->operand2->type, x->operand2->value);
+			fprintf(outputFile, "\n");
+		}
 		currentIR = currentIR->next;
 	}
 	printf("\n");
@@ -62,7 +70,7 @@ LIR* createLinearIR(HashMap* symTable, dlinklist* AST)
 	/* If verbose, print the list */
 	if(verbose)
 	{
-		printLIR(IRList);
+		printLIR(IRList, stdout, 1);
 	}
 
 	LIR* lir = malloc(sizeof(LIR));
@@ -262,7 +270,7 @@ LIROperand* handleWhile(BinaryTreeNode* thisNode)
 		current = current->next;
 	}
 
-	LIROperand* lineOperand = newLIROperand(LINE, linenum+2);
+	LIROperand* lineOperand = newLIROperand(LINE, linenum+1);
 	jumpIf->operand1=lineOperand;
 
 	LIROperand* jumpOp1 = newLIROperand(LINE, startLine-1);

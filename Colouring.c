@@ -174,7 +174,7 @@ ColourInfo* Colour(LivenessList* livenessList, int MAX_COLOUR)
 
 		if(colour == -1)
 		{
-			//spill a node
+			//spill the node
 			//assign it a stack location
 			//after each reference to this node/temporary
 			//write it to the stack

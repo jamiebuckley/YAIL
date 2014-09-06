@@ -11,6 +11,9 @@
 #include "List.h"
 #include "HashMap.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define MEMADD   0
 #define TEMP     1
 #define CONSTANT 2
@@ -51,7 +54,7 @@ typedef struct LIRNode
 	LIROperand* operand2;
 } LIRNode;
 
-int printLIR(dlinklist* IRList);
+int printLIR(dlinklist* IRList, FILE* outputFile, int asWords);
 LIR* createLinearIR(HashMap* symTable, dlinklist* AST);
 LIROperand* ProcessCurrentNode(BinaryTreeNode* statementNode);
 

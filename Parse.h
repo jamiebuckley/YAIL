@@ -47,5 +47,5 @@ int legallookahead(int, ...);
 char* getLex();
 void exitWithError(char* message, int error);
 ASTNode* newASTNode(int type, char* textType, char* value);
-
+void freeASTNode(void* this);
 #endif
