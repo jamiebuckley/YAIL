@@ -22,7 +22,6 @@ char* commandWords[] = {"LOAD", "STORE", "ADD", "SUB", "MUL", "DIV", "COMPEQ", "
 
 int printLIR(dlinklist* IRList, FILE* outputFile, int asWords)
 {
-	printf("LINEAR IR: \n");
 	node* currentIR = IRList->start;
 	while(currentIR != NULL)
 	{

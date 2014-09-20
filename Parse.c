@@ -394,6 +394,16 @@ BinaryTreeNode* factor()
 		factorData=newASTNode(VAR, "Variable", getLex());
 		advance();
 	}
+	else if (match(LP))
+	{
+		advance();
+		factorNode = expression();
+	   	if(match(RP))
+	    {
+	        advance();
+			return factorNode;
+	   	}	   
+	}
 	else
 		exitWithError("Expected variable or constant value", ERROR_INVALID_STATEMENT);
 

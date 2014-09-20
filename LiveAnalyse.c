@@ -16,6 +16,7 @@ dlinklist** IN;
 dlinklist** OUT;
 
 int numInstructions;
+extern int verbose;
 
 int printNum(void* data)
 {
@@ -81,7 +82,10 @@ LivenessList* LiveAnalyse(LIR* lir)
 		if(numAdded==0) break;
 	}
 
-	printTables(numInstructions);
+	if(verbose)
+	{
+		printTables(numInstructions);
+	}
 
 	LivenessList* result = malloc(sizeof(LivenessList));
 	result->numInstructions = numInstructions;

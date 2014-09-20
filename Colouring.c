@@ -13,6 +13,7 @@
 
 dlinklist* colourGraph;
 int numTemporaries;
+extern int verbose;
 
 int readGraph(ColourInfo* colourInfo)
 {	
@@ -189,7 +190,10 @@ ColourInfo* Colour(LivenessList* livenessList, int MAX_COLOUR)
 	colourInfo->livenessList = livenessList;
 	colourInfo->tempColours = malloc(sizeof(int) * livenessList->numTemporaries);
 
-	readGraph(colourInfo);
+	if(verbose)
+	{
+		readGraph(colourInfo);
+	}
 
 	return colourInfo;
 }

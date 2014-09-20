@@ -90,6 +90,12 @@ int main(int argc, char** argv)
 		current = current->next;
 	}
 
+	if(verbose)
+	{
+		printf("LIR:\n");
+		printLIR(lir->IRList, stdout, 1);
+	}
+
 	char* outputFileName = getNameWithoutExtension(argv[1]);
 	if(outputFileName == NULL)
 		printf("Error generating output file name\n");
