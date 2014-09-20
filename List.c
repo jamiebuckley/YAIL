@@ -20,6 +20,8 @@ dlinklist* newlist()
 int append(dlinklist* list, void* data)
 {
 	node* addnode = malloc(sizeof(node));
+	addnode->next = NULL;
+	addnode->prev = NULL;
 	addnode->data = data;		
 	list->size++;
 	
